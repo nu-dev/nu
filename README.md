@@ -2,6 +2,8 @@
 
 nu is the next generation of [mu](https://github.com/ohnx/mu).
 
-nu is a static site generator written in C and intended for fast and easy creation of a website from markdown files with low setup requirements (ie, ruby, javascript).
+nu is a static site generator written in C and intended for fast and easy creation of a blog-style website from markdown files with low setup requirements (ie, ruby, python are not needed).
 
-with the help of some scripts, nu can even be run automagically when you push to a repository.
+the goal for nu is to be a simpler version of something like [jekyll](http://jekyllrb.com/).
+
+with the help of some scripts, nu can even be run automagically when you push to a repository to create a static website.
