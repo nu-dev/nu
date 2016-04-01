@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I include/
+CFLAGS=-I include/ -Werror
 OBJ=nu.o cmds.o util.o
 OUTPUT=nu
 
