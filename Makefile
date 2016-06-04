@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-I include/ -Werror
-OBJ=nu.o cmds.o util.o
+CFLAGS=-I include/ -Lhoedown/ -lhoedown -Werror -Ilibnucommon -Llibnucommon -lnucommon
+OBJ=nu.o cmds.o util.o parser.o
 OUTPUT=nu
 
 default: nu

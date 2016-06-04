@@ -1,12 +1,10 @@
 #include "cmds.h"
-#include <errno.h>
 
-#define NEWSRV_BUF_SIZE 8192
-static char newsrv_buf[NEWSRV_BUF_SIZE];
+static char newsrv_buf[BUF_SIZE];
 
 static const char *defaultConfig_contents =
 "# nu default config\n"
-"# for help, please visit https://github.com/ohnx/nu/wiki\n"
+"# for help, please visit https://github.com/nu-dev/nu/wiki\n"
 "THEME=basic\n"
 "IGNORENEWERPOST=1\n";
 
@@ -23,7 +21,7 @@ int newSrv(char *name) {
     char *newDirName;
     FILE *fp;
     
-    if(getCurrDir(newsrv_buf, NEWSRV_BUF_SIZE - nameLen - configNameLength) == -1) {
+    if(getCurrDir(newsrv_buf, BUF_SIZE - nameLen - configNameLength) == -1) {
         return -1;
     }
     cwdLen = strlen(newsrv_buf);
@@ -65,18 +63,120 @@ int newSrv(char *name) {
     // write into it
     fputs(defaultConfig_contents, fp);
     fclose(fp);
+    
+    return 0;
 }
 
-void cleanNuDir(char *nuDir) {
+int cleanNuDir(char *nuDir) {
     char *removingDir;
+    int hasErr = 0;
     removingDir = dirJoin(nuDir, "posts");
-    if (recursiveDelDir(removingDir) != 0) {
+    if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
+        hasErr = 1;
     }
     free(removingDir);
     removingDir = dirJoin(nuDir, "special");
-    if (recursiveDelDir(removingDir) != 0) {
+    if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
+        hasErr = 1;
     }
     free(removingDir);
+    return hasErr;
+}
+
+char *getNuDir(int argc, char** argv) {
+    char *buf = calloc(BUF_SIZE, sizeof(char));
+    char *nuDir;
+    if (argc == 2) { // no other arguments passed, assume user means current directory is nudir
+        if (getCurrDir(buf, BUF_SIZE) != 0) return NULL;
+        nuDir = buf;
+    } else if (argc == 3) { // specified a directory to use as nudir
+        if (getCurrDir(buf, BUF_SIZE) != 0) return NULL;
+        nuDir = dirJoin(buf, argv[2]);
+        free(buf);
+    } else {
+        fprintf(stderr, "["KRED"ERR"RESET"] Invalid number of arguments passed. For help, use `%s help clean`\n", *argv);
+        free(buf);
+        return NULL;
+    }
+    if (!isNuDir(nuDir)) goto notnudir;
+    return nuDir;
+notnudir:
+    fprintf(stderr, "["KRED"ERR"RESET"] The specified directory %s is not a valid nu directory. Please check that the file `config.cfg` exists and try again.\n", nuDir);
+    free(nuDir);
+    return NULL;
+}
+
+static char *globNuDir;
+
+int builderHelper(char *inFile) {
+    FILE *in;
+    FILE *out;
+    char *outFile;
+    hoedown_buffer *ib, *ob;
+	hoedown_document *document;
+	unsigned int extensions = HOEDOWN_EXT_NO_INTRA_EMPHASIS | HOEDOWN_HTML_HARD_WRAP | HOEDOWN_EXT_TABLES | HOEDOWN_EXT_UNDERLINE | HOEDOWN_EXT_HIGHLIGHT | HOEDOWN_EXT_SUPERSCRIPT | HOEDOWN_EXT_STRIKETHROUGH | HOEDOWN_EXT_FENCED_CODE | HOEDOWN_EXT_AUTOLINK;
+
+    // get the output filename
+    outFile = getOutputFileName(inFile, globNuDir);
+    
+    if (!(fileTimeDelta(inFile, outFile) > 0)) { // the markdown file is older than the compiled file
+        printf("["KBLU"ERR"RESET"] Skipping file %s (input file is older than compiled file)\n", fileName);
+        return 0;
+    } else {
+        printf("["KBLU"ERR"RESET"] Building file %s\n", fileName);
+    }
+    
+    // input file
+	fp = fopen(inFile, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open input file %s: ", fileName);
+		perror("");
+		return -1;
+	}
+	
+	// output file
+	fp = fopen(outFile, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open output file %s: ", fileName);
+		perror("");
+		return -1;
+	}
+	
+	/* If you don't understand this code, check out https://github.com/hoedown/hoedown/wiki/Getting-Started */
+	// create the buffers
+	ib = hoedown_buffer_new(DEF_IUNIT);
+	hoedown_buffer_putf(ib, fp);
+	hoedown_renderer *renderer = hoedown_html_renderer_new(0, 0);
+	
+	/* Perform Markdown rendering */
+	ob = hoedown_buffer_new(DEF_OUNIT);
+	document = hoedown_document_new(renderer, extensions, 16);
+
+	hoedown_document_render(document, ob, ib->data, ib->size);
+
+	hoedown_buffer_free(ib);
+	hoedown_document_free(document);
+	hoedown_html_renderer_free(renderer);
+	
+	fprintf(outFile, "%s", ob->data);
+	
+	fclose(inFile);
+	fclose(outFile);
+	free(outFile);
+	return 0;
+}
+
+int buildNuDir(char *nuDir) {
+    char *buildingDir;
+    buildingDir = dirJoin(nuDir, "raw");
+    globNuDir = nuDir;
+    if (loopThroughDir(buildingDir, &builderHelper) != 0) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Failed to build! Check if you have permissions to create files in `%s/posts` or `%s/special` and try again.\n", nuDir, nuDir);
+        free(buildingDir);
+        return -1;
+    }
+    free(buildingDir);
+    return 0;
 }
