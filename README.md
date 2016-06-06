@@ -1,6 +1,6 @@
 # nu
 
-[![Build Status](https://travis-ci.org/nu-dev/nu.svg?branch=master)](https://travis-ci.org/ohnx/nu)
+[![Build Status](https://travis-ci.org/nu-dev/nu.svg?branch=master)](https://travis-ci.org/nu-dev/nu)
 
 nu is the next generation of [mu](https://github.com/ohnx/mu).
 
