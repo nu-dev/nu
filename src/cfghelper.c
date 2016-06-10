@@ -112,7 +112,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
     done:
     return 0;
 }
-
+/*
 int main(int argc, char **argv) {
     if (argc == 2) {
         FILE *f;
@@ -148,4 +148,4 @@ int main(int argc, char **argv) {
         printf("Invalid # of arguments!");
     }
     return 1;
-}
+}*/
