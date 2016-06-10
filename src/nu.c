@@ -1,7 +1,7 @@
 #include "common.h"
 #include "cmds.h"
 
-static char buf[BUF_SIZE];
+//static char buf[BUF_SIZE];
 
 int parseOpts(int argc, char **argv) {
     char *nuDir;

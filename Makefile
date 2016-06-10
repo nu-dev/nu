@@ -1,6 +1,7 @@
 CC=gcc
-CFLAGS=-I include/ -Lhoedown/ -lhoedown -Werror -Ilibnucommon -Llibnucommon -lnucommon
-OBJ=nu.o cmds.o util.o parser.o
+CFLAGS=-I include/ -I hoedown/src/ -I libnucommon/ -Lhoedown/ -lhoedown -Llibnucommon -lnucommon -Wall -Werror
+# OBJ=nu.o cmds.o util.o parser.o
+OBJ=cfghelper.o
 OUTPUT=nu
 
 default: nu
@@ -10,6 +11,7 @@ default: nu
 
 nu: $(OBJ)
 	gcc -o $(OUTPUT) $^ $(CFLAGS)
+	-rm -f $(OBJ)
 
 clean:
 	-rm -f $(OBJ)

@@ -109,6 +109,7 @@ notnudir:
 }
 
 static char *globNuDir;
+static template_dictionary *tb;
 
 int builderHelper(char *inFile) {
     FILE *in;

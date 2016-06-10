@@ -1,69 +1,6 @@
 #include "parser.h"
 
 /*
-get the next token
-*/
-char *parser_next_token(const char *in, const char *token) {
-    const char *currChar = in;
-    int i;
-    int tokenLen = strlen(token);
-    // loop through the entire string
-    while (*currChar != '\0') {
-        // check if currChar matches the first token
-        if (*currChar == *token) {
-            // loop through for the rest of the token lengths to see if they are equal
-            for (i = 1; i < tokenLen; i++) {
-                if (currChar[i] != token[i]) {
-                    // the match failed at some point, keep looping through string then.
-                    goto noMatch;
-                }
-            }
-            // the loop finished successfully (ie, everything matches), so return
-            return (char *)currChar;
-        }
-        // keep looping through string
-        noMatch:
-        currChar++;
-    }
-    // nothing was found that matched
-    return NULL;
-}
-
-/*
-Grabs the value between an input and an end bunch
-ie, in=" test }}"" with end="}}" will return "test"
-
-Returns NULL if nothing was found, otherwise will return a new null-terminated
-string that is the value in between.
-
-NOTUSED
-char *parser_grab_value(const char *in, const char *end) {
-    char *ending;
-    int length;
-    char *value;
-    
-    // get the ending, if it's not found, return NULL
-    ending = parser_next_token(beginning, end);
-    if (ending == NULL) return NULL;
-    ending -= 1; // We want the last character before the ending, and 
-                 // parser_next_token returns the start of the token
-    
-    length = ending - in;
-    value = strndup(in, length);
-    
-    // check if there are any spaces at the start of at the end of the value
-    if (*in == ' ' || *ending == ' ') {
-        // trim the spaces and put the trimmed result into the value
-        // need to free value since we just strdup'd it
-        char *temp = strutil_trim_spaces(value);
-        free(value);
-        value = temp;
-    }
-    
-    return value;
-}*/
-
-/*
 Parse the template using the dictionary given
 */
 char *parse_template(const char *in, const template_dictionary *dictionary) {
