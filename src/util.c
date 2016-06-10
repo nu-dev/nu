@@ -1,7 +1,7 @@
 #include "util.h"
 
 // utility to check if directory exists or not
-int dirExists(char *name) {
+int dirExists(const char *name) {
     DIR* dir = opendir(name);
     if (dir) {
         // Directory exists.
@@ -14,7 +14,7 @@ int dirExists(char *name) {
     return -1;
 }
 
-int makeNewDir(char *dir) {
+int makeNewDir(const char *dir) {
     int errCode;
     errCode = mkdir(dir, 0700);
     // if worked, return 1
@@ -23,7 +23,7 @@ int makeNewDir(char *dir) {
     return 0;
 }
 
-char *dirJoin(char *a, char *b) {
+char *dirJoin(const char *a, const char *b) {
     // join string helper function
     int lenA = strlen(a);
     // allocate memory for them
@@ -48,8 +48,8 @@ int getCurrDir(char *location, int length) {
 }
 
 
-int isNuDir(char *dir) {
-    char *configName = "config.cfg";
+int isNuDir(const char *dir) {
+    char *configName = "config.kg";
     FILE *fp;
     char *checkingFile = dirJoin(dir, configName);
     fp = fopen(checkingFile, "r");
@@ -63,7 +63,7 @@ int isNuDir(char *dir) {
     }
 }
 
-int delDir(char *dirName) {
+int delDir(const char *dirName) {
     DIR *folder = opendir(dirName);
     struct dirent *next_file;
     if (folder == NULL) {perror("["KRED"ERR"RESET"] Error opening directory"); return 1;}
@@ -79,7 +79,7 @@ int delDir(char *dirName) {
     return 0;
 }
 
-int loopThroughDir(char *dirName, dirIterator iter) {
+int loopThroughDir(const char *dirName, dirIterator iter) {
     DIR *folder = opendir(dirName);
     struct dirent *next_file;
     if (folder == NULL) {perror("["KRED"ERR"RESET"] Error opening directory"); return 1;}
@@ -94,7 +94,7 @@ int loopThroughDir(char *dirName, dirIterator iter) {
     return 0;
 }
 
-int fileTimeDelta(char *nameOne, char *nameTwo) {
+int fileTimeDelta(const char *nameOne, const char *nameTwo) {
     struct stat attr;
 	time_t fileOneTime, fileTwoTime;
 	
@@ -106,19 +106,19 @@ int fileTimeDelta(char *nameOne, char *nameTwo) {
 	return difftime(fileOneTime, fileTwoTime);
 }
 
-char *fileExtension(char *in) {
+const char *fileExtension(const char *in) {
     char *dot = strrchr(filename, '.');
     if(!dot || dot == filename) return "";
     return dot + 1;
 }
 
-char *fileName(char *in) {
+const char *fileName(const char *in) {
     return strrchr(in, '/');
 }
 
 #define isDigit(c) ((c) - '0' + 0U <= 9U)
 
-char *getOutputFileName(char *inFile, char *nuDir) {
+char *getOutputFileName(const char *inFile, const char *nuDir) {
     char *inFileCopy = strdup(inFile);
     // get the filename
     // check if file follows post format

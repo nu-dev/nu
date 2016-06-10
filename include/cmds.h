@@ -5,6 +5,8 @@
 #include "document.h"
 #include "html.h"
 #include <errno.h>
+#include "parser.h"
+#include "dictionary.h"
 
 int newSrv(char *name);
 int cleanNuDir(char *nuDir);

@@ -4,19 +4,17 @@ static char newsrv_buf[BUF_SIZE];
 
 static const char *defaultConfig_contents =
 "# nu default config\n"
-"# for help, please visit https://github.com/nu-dev/nu/wiki\n"
-"THEME=basic\n"
-"IGNORENEWERPOST=1\n";
+"# for help, please visit https://github.com/nu-dev/nu/wiki/Getting-Started\n"
+"THEME = \"basic\"\n"
+"IGNORENEWERPOST = \"1\"\n";
 
 int newSrv(char *name) {
     int nameLen = strlen(name);
     int cwdLen = 0;
     int i;
-    int startLen;
-    char *addStart;
     char *dirsToMake[6] = {"", "posts", "raw", "resources", "special", "theme"};
     int dirsToMakeCount = 6;
-    char *configName = "config.cfg";
+    char *configName = "config.kg";
     int configNameLength = strlen(configName);
     char *newDirName;
     FILE *fp;
@@ -109,50 +107,52 @@ notnudir:
 }
 
 static char *globNuDir;
-static template_dictionary *tb;
+static template_dictionary *template_dic;
 
 int builderHelper(char *inFile) {
     FILE *in;
     FILE *out;
     char *outFile;
+    char *final;
     hoedown_buffer *ib, *ob;
 	hoedown_document *document;
+	template_dictionary *post_dic;
 	unsigned int extensions = HOEDOWN_EXT_NO_INTRA_EMPHASIS | HOEDOWN_HTML_HARD_WRAP | HOEDOWN_EXT_TABLES | HOEDOWN_EXT_UNDERLINE | HOEDOWN_EXT_HIGHLIGHT | HOEDOWN_EXT_SUPERSCRIPT | HOEDOWN_EXT_STRIKETHROUGH | HOEDOWN_EXT_FENCED_CODE | HOEDOWN_EXT_AUTOLINK;
 
     // get the output filename
     outFile = getOutputFileName(inFile, globNuDir);
     
     if (!(fileTimeDelta(inFile, outFile) > 0)) { // the markdown file is older than the compiled file
-        printf("["KBLU"ERR"RESET"] Skipping file %s (input file is older than compiled file)\n", fileName);
+        printf("["KBLU"ERR"RESET"] Skipping file %s (input file is older than compiled file)\n", inFile);
         return 0;
     } else {
-        printf("["KBLU"ERR"RESET"] Building file %s\n", fileName);
+        printf("["KBLU"ERR"RESET"] Building file %s to %s\n", inFile, outFile);
     }
     
     // input file
-	fp = fopen(inFile, "r");
-	if (fp == NULL) {
-		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open input file %s: ", fileName);
+	in = fopen(inFile, "r");
+	if (in == NULL) {
+		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open input file %s: ", inFile);
 		perror("");
 		return -1;
 	}
 	
 	// output file
-	fp = fopen(outFile, "w");
-	if (fp == NULL) {
-		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open output file %s: ", fileName);
+	out = fopen(outFile, "w+");
+	if (out == NULL) {
+		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open output file %s: ", outFile);
 		perror("");
 		return -1;
 	}
 	
 	/* If you don't understand this code, check out https://github.com/hoedown/hoedown/wiki/Getting-Started */
 	// create the buffers
-	ib = hoedown_buffer_new(DEF_IUNIT);
-	hoedown_buffer_putf(ib, fp);
+	ib = hoedown_buffer_new(16);
+	hoedown_buffer_putf(ib, in);
 	hoedown_renderer *renderer = hoedown_html_renderer_new(0, 0);
 	
 	/* Perform Markdown rendering */
-	ob = hoedown_buffer_new(DEF_OUNIT);
+	ob = hoedown_buffer_new(16);
 	document = hoedown_document_new(renderer, extensions, 16);
 
 	hoedown_document_render(document, ob, ib->data, ib->size);
@@ -161,10 +161,18 @@ int builderHelper(char *inFile) {
 	hoedown_document_free(document);
 	hoedown_html_renderer_free(renderer);
 	
-	fprintf(outFile, "%s", ob->data);
+	fclose(in);
+	fclose(out);
 	
-	fclose(inFile);
-	fclose(outFile);
+	// create the post dictionary
+	post_dic = td_new();
+	td_put(post_dic, "post.content", ob->data);
+	td_put(post_dic, "post.date", );
+	td_put(post_dic, "post.name", );
+	
+	final = parse_template(, td);
+	
+	fprintf(out, "%s", final);
 	free(outFile);
 	return 0;
 }
