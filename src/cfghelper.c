@@ -101,8 +101,8 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             free(currkey);
             free(currvalue);
             
-            // ending is set to 3 characters past the end
-            ending = temp + 3;
+            // ending is set to 4 characters past the end (include newline)
+            ending = temp + 4;
             
         }
         // jump to the ending
