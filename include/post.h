@@ -17,8 +17,9 @@
 typedef struct _post {
     char *name; // post name
     char *contents; // parsed contents of the post
-    char *date; // date last modified
-    char *time; // time last modified
+    char *cdate; // date created (based on input filename)
+    char *mdate; // date last modified
+    char *mtime; // time last modified
     char *in_fn; // input filename (filename ONLY, not extension)
     char *out_loc; // output location
 } post;
