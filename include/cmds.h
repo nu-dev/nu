@@ -4,8 +4,8 @@
 #include "document.h"
 #include "html.h"
 #include <errno.h>
-#include "parser.h"
-#include "cfghelper.h"
+#include "unvo.h"
+#include "kg.h"
 #include "dictionary.h"
 
 int newSrv(char *name);
