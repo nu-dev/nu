@@ -1,5 +1,6 @@
 CC=gcc
-CFLAGS=-I include/ -I hoedown/src/ -I libnucommon/ -Lhoedown/ -lhoedown -Llibnucommon -lnucommon -Wall -Werror
+CFLAGS=-I include/ -I hoedown/src/ -I libnucommon/ -Lhoedown/ -lhoedown -Llibnucommon -lnucommon -Wall
+#-Werror
 OBJ=nu.o cmds.o util.o parser.o cfghelper.o
 OUTPUT=nu
 

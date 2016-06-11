@@ -15,7 +15,9 @@ typedef int (*dirIterator)(char *dirName);
 
 int loopThroughDir(const char *dirName, dirIterator iter);
 int fileTimeDelta(const char *nameOne, const char *nameTwo);
+time_t getFileLastModifiedTime(const char *name);
 const char *fileExtension(const char *in);
 const char *fileName(const char *in);
 char *getOutputFileName(const char *inFile, const char *nuDir);
+char *dumpFile(const char *filename);
 #endif

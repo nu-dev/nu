@@ -11,14 +11,14 @@ char *parse_template(const char *in, const template_dictionary *dictionary) {
     // loop through until we hit the end
     while (1) {
         // find the next occurence of "{{" - aka the start of a variable
-        startToken = parser_next_token(lastEnding, "{{");
+        startToken = strutil_next_token(lastEnding, "{{");
         if (startToken == NULL) goto done; // done parsing, no more variables
         
         printf("looping 1: %s\n", startToken);
         fflush(stdout);
         
         // find the next occurence of "}}" - aka the end of the variable
-        endToken = parser_next_token(startToken, "}}");
+        endToken = strutil_next_token(startToken, "}}");
         if (endToken == NULL) { // the endToken is null, should not happen!
             fprintf(stderr, "["KRED"ERR"RESET"] Template does not close variable! Check to make sure that all `{{` are terminated by `}}`.\n");
             return NULL;

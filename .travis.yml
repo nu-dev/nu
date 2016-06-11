@@ -2,4 +2,4 @@ language: c
 compiler:
   - clang
   - gcc
-script: ./fetch-dependencies.sh && make
+script: ./build-deps.sh && make

@@ -9,9 +9,10 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-
+#include <time.h>
 
 // custom headers
+#include "libnucommon.h"
 #include "util.h"
 
 // color codes

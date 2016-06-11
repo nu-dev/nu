@@ -31,7 +31,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         temp = start;
         
         // keep reading until we hit a " or a < - if not found, throw error
-        while (*temp != '"' && *temp != '<'  && *in != '\0'  && *in != '\n') {
+        while (!(*temp == '"' || *temp == '<'  || *temp == '\0'  || *temp == '\n')) {
             temp++;
         }
         

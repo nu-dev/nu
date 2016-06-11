@@ -26,14 +26,26 @@ int makeNewDir(const char *dir) {
 char *dirJoin(const char *a, const char *b) {
     // join string helper function
     int lenA = strlen(a);
-    // allocate memory for them
-    char *newString = calloc(lenA+strlen(b)+1, sizeof(char));
-    // copy over first part
-    strcpy(newString, a);
-    // the slash
-    newString[lenA] = '/';
-    // then the new folder name
-    strcpy(&newString[lenA+1], b);
+    char *newString;
+    
+    // check if there isn't already a trailing "/"
+    if (a[lenA-1] != '/') {
+        // allocate memory for them
+        newString = calloc(lenA+strlen(b)+1, sizeof(char));
+        // copy over first part
+        strcpy(newString, a);
+        // the slash
+        newString[lenA] = '/';
+        // then the new folder name
+        strcpy(&newString[lenA+1], b);
+    } else {
+        // allocate memory for them
+        newString = calloc(lenA+strlen(b), sizeof(char));
+        // copy over first part
+        strcpy(newString, a);
+        // then the new folder name
+        strcpy(&newString[lenA], b);
+    }
     return newString;
 }
 
@@ -106,9 +118,15 @@ int fileTimeDelta(const char *nameOne, const char *nameTwo) {
 	return difftime(fileOneTime, fileTwoTime);
 }
 
+time_t getFileLastModifiedTime(const char *name) {
+    struct stat attr;
+	stat(name, &attr);
+	return attr.st_mtime;
+}
+
 const char *fileExtension(const char *in) {
-    char *dot = strrchr(filename, '.');
-    if(!dot || dot == filename) return "";
+    char *dot = strrchr(in, '.');
+    if(!dot || dot == in) return "";
     return dot + 1;
 }
 
@@ -119,28 +137,64 @@ const char *fileName(const char *in) {
 #define isDigit(c) ((c) - '0' + 0U <= 9U)
 
 char *getOutputFileName(const char *inFile, const char *nuDir) {
-    char *inFileCopy = strdup(inFile);
-    // get the filename
-    // check if file follows post format
-    //      yes, then replace dashes with '/'
-    char *name = fileName(inFileCopy);
-    int len = strlen(name);
-    char *dotLocation;
-    char *outName;
-    char *fullOutName;
-    // 2016-01-01-s.md we are checking that filename is long enough, we have the dashes and there are numbers
+    int len;
+    char *name, *outLocation, *temp, *temp2;
+    
+    // make a copy of the input filename so we can mutate it
+    name = strdup(fileName(inFile)+1);
+    len = strlen(name);
+    
+    // check if the filename matches the right format
     if ((len > 15)
         && (isDigit(name[0]) && isDigit(name[1]) && isDigit(name[2]) && isDigit(name[3]) && name[4] == '-') /* year */
         && (isDigit(name[5]) && isDigit(name[6]) && name[7] == '-') /* month */
-        && (isDigit(name[8]) && isDigit(name[9]) && name[10] == '-') /* day */)) { // this is a blog post
+        && (isDigit(name[8]) && isDigit(name[9]) && name[10] == '-') /* day */) { // this is a blog post
         // convert 2016-01-01-s.md to 2016/01/01/s
-        dotLocation = fileExtension(name);
-        *(dotLocation) = '\0';
+        temp = (char *)fileExtension(name) - 1;
+        *temp = '\0'; // null terminate the string to remove the .md
         name[4] = '/';
         name[7] = '/';
         name[10] = '/';
-        
+        temp = strutil_append_no_mutate(name, ".html"); // add the .html
+        free(name);
+        temp2 = dirJoin(nuDir, "posts/"); // goes in posts dir
+        outLocation = dirJoin(temp2, temp);
+        free(temp);
+        free(temp2);
+        return outLocation;
     } else { // treat it as a special file
-        
+        temp = (char *)fileExtension(name) - 1;
+        *temp = '\0'; // null terminate the string to remove the .md
+        temp = strutil_append_no_mutate(name, ".html"); // add the .html
+        free(name);
+        temp2 = dirJoin(nuDir, "special/"); // goes in special dir
+        outLocation = dirJoin(temp2, temp);
+        free(temp);
+        free(temp2);
+        return outLocation;
     }
+}
+
+char *dumpFile(const char *filename) {
+    // http://stackoverflow.com/questions/174531/easiest-way-to-get-files-contents-in-c
+    char * buffer = 0;
+    long length;
+    FILE * f = fopen (filename, "rb");
+    
+    if (f) {
+        fseek(f, 0, SEEK_END);
+        length = ftell (f);
+        fseek(f, 0, SEEK_SET);
+        buffer = malloc(length);
+        if (buffer) {
+            fread (buffer, 1, length, f);
+        }
+        fclose (f);
+    }
+    
+    if (buffer) {
+        // start to process your data / extract strings here...
+        return buffer;
+    }
+    return NULL;
 }
