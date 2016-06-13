@@ -1,5 +1,5 @@
-#ifndef _CFGHELPER_INC
-#define _CFGHELPER_INC
+#ifndef _KG_INC
+#define _KG_INC
 #include "common.h"
 #include "dictionary.h"
 

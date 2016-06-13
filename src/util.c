@@ -106,24 +106,6 @@ int loopThroughDir(const char *dirName, dirIterator iter) {
     return 0;
 }
 
-int fileTimeDelta(const char *nameOne, const char *nameTwo) {
-    struct stat attr;
-	time_t fileOneTime, fileTwoTime;
-	
-	stat(nameOne, &attr);
-	fileOneTime = attr.st_mtime;
-	stat(nameTwo, &attr);
-	fileTwoTime = attr.st_mtime;
-	
-	return difftime(fileOneTime, fileTwoTime);
-}
-
-time_t getFileLastModifiedTime(const char *name) {
-    struct stat attr;
-	stat(name, &attr);
-	return attr.st_mtime;
-}
-
 const char *fileExtension(const char *in) {
     char *dot = strrchr(in, '.');
     if(!dot || dot == in) return "";

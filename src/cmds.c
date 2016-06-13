@@ -111,7 +111,6 @@ static char *normal_template;
 static char *special_template;
 static template_dictionary *combined_dic;
 
-
 int builderHelper(char *inFile) {
     FILE *in;
     FILE *out;

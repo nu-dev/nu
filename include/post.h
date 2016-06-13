@@ -1,5 +1,5 @@
-#ifndef _CFGHELPER_INC
-#define _CFGHELPER_INC
+#ifndef _POSTUTIL_INC
+#define _POSTUTIL_INC
 
 // external headers
 #include <stdio.h>
