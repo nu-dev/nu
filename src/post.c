@@ -25,7 +25,7 @@ post *post_create(const char *in_fpath) {
     post *to = malloc(sizeof(post));
     
     /* in_fn -- make sure to get the right part */
-    to->in_fn = strdup(fileName(in_fpath));
+    to->in_fn = strdup(fileName(in_fpath) + 1);
     
     stat(to->in_fn, &attr);
 	inTime = attr.st_mtime;
@@ -48,10 +48,12 @@ post *post_create(const char *in_fpath) {
     }
 	
 	/* post name and creation time */
-    temp = fileName(to->out_loc);
+    temp = to->in_fn;
+    
     if (to->isSpecial) {
         /* no creation date */
         /* post name is just whatever minus the HTML */
+        to->name = strndup(temp, strlen(temp) - 5); /* ".html" = 5 chars */
     } else {
         /* timestamp is temp and 10 chars past */
         timestamp = strndup(temp, 10);
@@ -63,12 +65,14 @@ post *post_create(const char *in_fpath) {
         if (strptime(timestamp, "%Y-%m-%d", &createTime) != NULL) {
             strftime(to->cdate, 50, "%B %d, %Y", &createTime);
         } else {
-            fprintf(stderr, "error while parsing time"); /* TODO after tomorrow - continue here*/
+            fprintf(stderr, "error while parsing time\n"); /* TODO after tomorrow - continue here */
             /* throw some other error here, maybe even return NULL? */
         }
         free(timestamp);
+        
+        /* post name is temp minus the html */
+        to->name = strndup(temp, strlen(temp) - 3); /* ".html" = 5 chars */
     }
-    to->name = strndup(temp, strlen(temp) - 5); /* ".html" = 5 chars */
 	
 	/* last modified time and date */
 	time_tm = localtime(&inTime);
@@ -110,4 +114,20 @@ post_list *pl_new() {
     toCreate->tail = NULL;
     toCreate->length = 0;
     return toCreate;
+}
+
+int main() {
+    post *test;
+    globNuDir = "/home/ubuntu/workspace/fs-layout/";
+    test = post_create("/home/ubuntu/workspace/fs-layout/raw/2015-11-17-Test post.md");
+    printf("post.name: %s\n", test->name);
+    printf("post.contents: %s\n", test->contents);
+    printf("post.cdate: %s\n", test->cdate);
+    printf("post.mdate: %s\n", test->mdate);
+    printf("post.mtime: %s\n", test->mtime);
+    printf("post.in_fn: %s\n", test->in_fn);
+    printf("post.out_loc: %s\n", test->out_loc);
+    printf("post.deltaTime: %d\n", test->deltaTime);
+    printf("post.isSpecial: %d\n", test->isSpecial);
+    return 0;
 }

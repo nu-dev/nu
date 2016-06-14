@@ -225,10 +225,9 @@ char *parseMD(const char *filename) {
 	
 	fclose(in);
 	
-	removeCount = strutil_remove_unicode(ob->data, ob->size, ret);
+	removeCount = strutil_remove_unicode(ob->data, ob->size, &ret);
 	if (removeCount > 0) {
 	    printf("["KYEL"WARN"RESET"] Unicode characters were found in the file %s. Unfortunately, nu v"NU_VERSION" currently does NOT support unicode, and so these characters were removed.\n", filename);
 	}
-	
 	return ret;
 }
