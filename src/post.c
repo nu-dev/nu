@@ -2,74 +2,80 @@
 
 extern char *globNuDir;
 
-typedef struct _post {
-    char *name; // post name
-    char *contents; // parsed contents of the post
-    char cdate[100]; // date created (based on input filename)
-    char mdate[100]; // date last modified
-    char mtime[100]; // time last modified
-    char *in_fn; // input filename (filename ONLY, not extension)
-    char *out_loc; // output location
-} post;
-
-typedef struct _post_list_elem {
-    post *me;
-    struct _post_list *next;
-} post_list_elem;
-
-typedef struct _post_list {
-    post_list_elem *head;
-    post_list_elem *tail;
-    unsigned int length;
-} post_list;
-
-void td_put_val(template_dictionary *in, const char *key, const char *value) {
-    // set up the new template_dictionary_entry to add
-    template_dictionary_entry *toAdd = malloc(sizeof(template_dictionary_entry));
-    toAdd->key = strdup(key);
-    toAdd->value = strdup(value);
-    
-    // check if this is the first template_dictionary_entry in the dictionary
-    if (in->entryList == NULL) {
-        in->entryList = toAdd;
-        in->entryListTail = toAdd;
-    } else {
-        // not the first one
-        (in->entryListTail)->next = toAdd;
-        in->entryListTail = toAdd;
-    }
-    // incr length
+void pl_add_post(post_list *in, post *postAdd) { /* set up the new post_list_elem to add */
+    post_list_elem *toAdd = malloc(sizeof(post_list_elem));
+    toAdd->me = postAdd;
+    toAdd->next = NULL; /* check if this is the first post_list_elem in the dictionary */
+    if (in->head == NULL) {
+        in->head = toAdd;
+        in->tail = toAdd;
+    } else { /* not the first one */
+        (in->tail)->next = toAdd;
+        in->tail = toAdd;
+    } /* incr length */
     in->length++;
 }
 
-post *post_create(const char *in_fn) {
-    char *temp;
+post *post_create(const char *in_fpath) {
+    const char *temp;
+    char *timestamp;
     struct stat attr;
     time_t inTime, outTime;
-    struct tm *time_tm;
-    post *toCreate = malloc(sizeof(post));
+    struct tm *time_tm, createTime;
+    post *to = malloc(sizeof(post));
     
-    to->in_fn = in_fn;
+    /* in_fn -- make sure to get the right part */
+    to->in_fn = strdup(fileName(in_fpath));
     
     stat(to->in_fn, &attr);
 	inTime = attr.st_mtime;
 	
-	if (difftime(inTime, outTime) > 0) {
-	    free(toCreate);
-	    return NULL;
-	}
-	
-    to->out_loc = getOutputFileName(in_fn, globNuDir);
+	/* out_loc */
+    to->out_loc = getOutputFileName(to->in_fn, globNuDir, &(to->isSpecial));
     
 	stat(to->out_loc, &attr);
 	outTime = attr.st_mtime;
 	
-    temp = fileName(to->out_loc);
-    to->name = strndup(temp, strlen(temp) - 5); // ".html" = 5 chars
+	/* parsed contents - only parse if difftime > 0. otherwise,  */
+    if (difftime(inTime, outTime) <= 0) {
+        to->contents = parseMD(in_fpath);
+        if (to->contents == NULL) {
+            /* error while parsing */
+            return NULL;
+        }
+    } else {
+        to->contents = NULL;
+    }
 	
+	/* post name and creation time */
+    temp = fileName(to->out_loc);
+    if (to->isSpecial) {
+        /* no creation date */
+        /* post name is just whatever minus the HTML */
+    } else {
+        /* timestamp is temp and 10 chars past */
+        timestamp = strndup(temp, 10);
+        
+        /* post name need to remove the first bit */
+        temp += 11; /* skip past 2015-06-13- (11 chars) */
+        
+        /* creation date */
+        if (strptime(timestamp, "%Y-%m-%d", &createTime) != NULL) {
+            strftime(to->cdate, 50, "%B %d, %Y", &createTime);
+        } else {
+            fprintf(stderr, "error while parsing time"); /* TODO after tomorrow - continue here*/
+            /* throw some other error here, maybe even return NULL? */
+        }
+        free(timestamp);
+    }
+    to->name = strndup(temp, strlen(temp) - 5); /* ".html" = 5 chars */
+	
+	/* last modified time and date */
 	time_tm = localtime(&inTime);
-	strftime(to->mtime, sizeof(str_time), "%H:%M:%S", time_tm);
-    strftime(to->mdate, sizeof(str_date), "%d/%m/%Y", time_tm);
+	strftime(to->mtime, 11, "%H:%M:%S", time_tm);
+    strftime(to->mdate, 50, "%B %d, %Y", time_tm);
+    
+    return to;
 }
 
 void post_free(post *in) {
@@ -81,12 +87,11 @@ void post_free(post *in) {
 }
 
 void pl_clean(post_list *in) {
-    // get the first entry
-    post_list_entry *curr = in->head;
-    post_list_entry *next;
-    post *freeMe;
+    /* get the first element */
+    post_list_elem *curr = in->head;
+    post_list_elem *next;
     
-    // loop through the entire list
+    /* loop through the entire list */
     while (curr != NULL) {
         next = curr->next;
         post_free(curr->me);
@@ -98,8 +103,8 @@ void pl_clean(post_list *in) {
 }
 
 post_list *pl_new() {
-    // create a new empty post_list with the right values set
-    // so that it is ready to be used with other td_ functions
+    /* create a new empty post_list with the right values set 
+       so that it is ready to be used with other td_ functions */
     post_list *toCreate = malloc(sizeof(post_list));
     toCreate->head = NULL;
     toCreate->tail = NULL;

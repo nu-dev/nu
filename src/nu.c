@@ -1,7 +1,7 @@
 #include "common.h"
 #include "cmds.h"
 
-//static char buf[BUF_SIZE];
+/*static char buf[BUF_SIZE];*/
 
 int parseOpts(int argc, char **argv) {
     char *nuDir;
@@ -35,7 +35,7 @@ int parseOpts(int argc, char **argv) {
         return 0;
     }
     
-    // individual commands
+    /* individual commands */
     if (strcmp(argv[1], "new") == 0) {
         if (argc == 3) {
             hasErr = newSrv(argv[2]);

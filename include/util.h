@@ -1,6 +1,9 @@
 #ifndef _UTILHEADER_INC
 #define _UTILHEADER_INC
 #include "common.h"
+#include "document.h"
+#include "html.h"
+#include <string.h>
 #include <errno.h>
 
 int dirExists(const char *name);
@@ -10,14 +13,13 @@ int getCurrDir(char *location, int length);
 int isNuDir(const char *dir);
 int delDir(const char *dirName);
 
-// function pointer def
+/* function pointer def */
 typedef int (*dirIterator)(char *dirName);
 
 int loopThroughDir(const char *dirName, dirIterator iter);
-int fileTimeDelta(const char *nameOne, const char *nameTwo);
-time_t getFileLastModifiedTime(const char *name);
 const char *fileExtension(const char *in);
 const char *fileName(const char *in);
-char *getOutputFileName(const char *inFile, const char *nuDir);
+char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial);
 char *dumpFile(const char *filename);
+char *parseMD(const char *filename);
 #endif

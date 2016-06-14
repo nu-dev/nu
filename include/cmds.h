@@ -1,8 +1,6 @@
 #ifndef _CMDS_INC
 #define _CMDS_INC
 #include "common.h"
-#include "document.h"
-#include "html.h"
 #include <errno.h>
 #include "unvo.h"
 #include "kg.h"

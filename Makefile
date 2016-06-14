@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-I include/ -I hoedown/src/ -I libnucommon/ -Lhoedown/ -lhoedown -Llibnucommon -lnucommon -Wall
+CFLAGS=-I include/ -I hoedown/src/ -I libnucommon/ -Lhoedown/ -lhoedown -Llibnucommon -lnucommon -Wall -pedantic
 #-Werror
-OBJ=nu.o cmds.o util.o unvo.o kg.o post.o
+OBJ=util.o unvo.o kg.o post.o nu.o cmds.o
 OUTPUT=nu
 
 default: nu

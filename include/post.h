@@ -1,32 +1,24 @@
 #ifndef _POSTUTIL_INC
 #define _POSTUTIL_INC
 
-// external headers
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <time.h>
-
-// custom headers
+/* custom headers */
 #include "common.h"
 
 typedef struct _post {
-    char *name; // post name
-    char *contents; // parsed contents of the post
-    char *cdate; // date created (based on input filename)
-    char *mdate; // date last modified
-    char *mtime; // time last modified
-    char *in_fn; // input filename (filename ONLY, not extension)
-    char *out_loc; // output location
+    char *name; /* post name */
+    char *contents; /* parsed contents of the post */
+    char cdate[50]; /* date created (based on input filename) */
+    char mdate[50]; /* date last modified */
+    char mtime[11]; /* time last modified */
+    char *in_fn; /* input filename (filename ONLY, not extension) */
+    char *out_loc; /* output location */
+    double deltaTime; /* delta time between input and output */
+    int isSpecial; /* is this a special post */
 } post;
 
 typedef struct _post_list_elem {
     post *me;
-    struct _post_list *next;
+    struct _post_list_elem *next;
 } post_list_elem;
 
 typedef struct _post_list {
@@ -35,4 +27,9 @@ typedef struct _post_list {
     unsigned int length;
 } post_list;
 
+void pl_add_post(post_list *in, post *postAdd);
+post *post_create(const char *in_fpath);
+void post_free(post *in);
+void pl_clean(post_list *in);
+post_list *pl_new();
 #endif

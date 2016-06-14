@@ -2,14 +2,14 @@
 
 int parse_config(const char *in, const char *prefix, template_dictionary *dictionary) {
     char *start, *currkey, *temp, *currvalue, *ending;
-    // loop through until we hit the end
+    /* loop through until we hit the end */
     const char *last = in;
     while (1) {
-        // find next occurence of '=' - aka the start of a declaration - if not found, we're done here!
+        /* find next occurence of '=' - aka the start of a declaration - if not found, we're done here! */
         start = strutil_next_token(last, "=");
         if (start == NULL) goto done;
         
-        // everything from the last char to this equal sign is the left side - unless it's '#'
+        /* everything from the last char to this equal sign is the left side - unless it's '#' */
         if (*last == '#') {
             last = strutil_next_token(last, "\n");
             if (last == NULL) goto done;
@@ -18,19 +18,19 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         }
         currkey = strndup(last, start - last);
         
-        // strip spaces from it
+        /* strip spaces from it */
         temp = strutil_trim_spaces(currkey);
         free(currkey);
         currkey = temp;
         
-        // add prefix to it (prefix should already be including the ".")
+        /* add prefix to it (prefix should already be including the ".") */
         temp = strutil_append_no_mutate(prefix, currkey);
         free(currkey);
         currkey = temp;
         
         temp = start;
         
-        // keep reading until we hit a " or a < - if not found, throw error
+        /* keep reading until we hit a " or a < - if not found, throw error */
         while (!(*temp == '"' || *temp == '<'  || *temp == '\0'  || *temp == '\n')) {
             temp++;
         }
@@ -39,11 +39,11 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` does not have a value!\n", currkey);
             free(currkey);
             return 1;
-        } else if (*temp == '"') { // if it's a ":
-            // save that location into a variable
-            currvalue = temp + 1; // skip past the "
+        } else if (*temp == '"') { /* if it's a ": */
+            /* save that location into a variable */
+            currvalue = temp + 1; /* skip past the " */
             
-            // read until you hit " - if not found, throw error
+            /* read until you hit " - if not found, throw error */
             temp = strutil_next_token(currvalue, "\"");
             
             if (temp == NULL) {
@@ -52,38 +52,38 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
                 return 1;
             }
             
-            // from the previously saved location to the " is the value
+            /* from the previously saved location to the " is the value */
             currvalue = strndup(currvalue, temp - currvalue);
             
-            // save it in the dictionary
+            /* save it in the dictionary */
             td_put_val(dictionary, currkey, currvalue);
             free(currkey);
             free(currvalue);
             
-            // save the location to the ending
+            /* save the location to the ending */
             ending = temp+2;
-        } else if (*temp == '<') { // else (aka it's a <)
+        } else if (*temp == '<') { /* else (aka it's a <) */
             char *lookupStr;
             
-            // make sure next 2 chars are < and < (and not anything else - if they are, throw error)
+            /* make sure next 2 chars are < and < (and not anything else - if they are, throw error) */
             if (!(*(temp+1) == '<' && *(temp+2) == '<')) {
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` does not have a value!\n", currkey);
                 free(currkey);
                 return 1;
             }
             temp += 3;
-            // read next 3 non-null characters - if they are null, throw error
+            /* read next 3 non-null characters - if they are null, throw error */
             if (*(temp) != '\0' && *(temp+1) != '\0' && *(temp+2) != '\0' && *(temp) != '\n' && *(temp+1) != '\n' && *(temp+2) != '\n') {
-                // save the end of those 3 characters into a variable
+                /* save the end of those 3 characters into a variable */
                 lookupStr = strndup(temp, 3);
-                currvalue = temp + 4; // skip past all the characters (including newline)
+                currvalue = temp + 4; /* skip past all the characters (including newline) */
             } else {
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` has an invalid value. For help, please visit the wiki (use the flag `help` for a link).\n", currkey);
                 free(currkey);
                 return 1;
             }
             
-            // use those 3 characters to look for the end - if not found, throw error
+            /* use those 3 characters to look for the end - if not found, throw error */
             temp = strutil_next_token(currvalue, lookupStr);
             if (temp == NULL) {
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` has an invalid value. For help, please visit the wiki (use the flag `help` for a link).\n", currkey);
@@ -92,26 +92,27 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
                 return 1;
             }
             
-            // from the variable stored to the recently found end is the value
+            /* from the variable stored to the recently found end is the value */
             currvalue = strndup(currvalue, temp - currvalue);
             free(lookupStr);
             
-            // save that to the template dictionary
+            /* save that to the template dictionary */
             td_put_val(dictionary, currkey, currvalue);
             free(currkey);
             free(currvalue);
             
-            // ending is set to 4 characters past the end (include newline)
+            /* ending is set to 4 characters past the end (include newline) */
             ending = temp + 4;
             
         }
-        // jump to the ending
+        /* jump to the ending */
         last = ending;
         if (last == NULL || *last == '\0')  goto done;
     }
     done:
     return 0;
 }
+
 /*
 int main(int argc, char **argv) {
     if (argc == 2) {

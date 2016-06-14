@@ -1,7 +1,7 @@
 #ifndef _CFGHELPER_INC
 #define _CFGHELPER_INC
 
-// external headers
+/* external headers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,13 +9,15 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+#define __USE_XOPEN
+#define _GNU_SOURCE
 #include <time.h>
 
-// custom headers
+/* custom headers */
 #include "libnucommon.h"
 #include "util.h"
 
-// color codes
+/* color codes */
 #ifndef _NU_COLORS
     #define _NU_COLORS
     #ifdef __linux__
@@ -41,8 +43,9 @@
     #endif
 #endif
 
-// nu version
+/* nu version */
 #define NU_VERSION      "0.0.1 pre-alpha"
 #define BUF_SIZE 8192
 
+char *globNuDir;
 #endif
