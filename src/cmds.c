@@ -9,15 +9,20 @@ static const char *defaultConfig_contents =
 "ignore_newer_post = \"1\"\n";
 
 int newSrv(char *name) {
-    int nameLen = strlen(name);
-    int cwdLen = 0;
+    #define DIRSTOMAKECOUNT 6
+    int nameLen;
+    int cwdLen;
     int i;
-    char *dirsToMake[6] = {"", "posts", "raw", "resources", "special", "theme"};
-    int dirsToMakeCount = 6;
-    char *configName = "config.kg";
-    int configNameLength = strlen(configName);
+    char *dirsToMake[DIRSTOMAKECOUNT] = {"", "posts", "raw", "resources", "special", "theme"};
+    char *configName;
+    int configNameLength;
     char *newDirName;
     FILE *fp;
+    
+    nameLen = strlen(name);
+    cwdLen = 0;
+    configName = "config.kg";
+    configNameLength = strlen(configName);
     
     if(getCurrDir(newsrv_buf, BUF_SIZE - nameLen - configNameLength) == -1) {
         return -1;
@@ -35,7 +40,7 @@ int newSrv(char *name) {
         return -1;
     }
     
-    for (i = 0; i < dirsToMakeCount; i++) { /* loop through all the directories to make */
+    for (i = 0; i < DIRSTOMAKECOUNT; i++) { /* loop through all the directories to make */
         printf("["KBLU"INFO"RESET"] Making directory %s/%s!\n", newsrv_buf, dirsToMake[i]);
         newDirName = dirJoin(newsrv_buf, dirsToMake[i]);
         if (makeNewDir(newDirName) == 0) { /* make directory itself */
@@ -62,30 +67,45 @@ int newSrv(char *name) {
     fputs(defaultConfig_contents, fp);
     fclose(fp);
     
+    #undef DIRSTOMAKECOUNT
     return 0;
 }
 
 int cleanNuDir(char *nuDir) {
     char *removingDir;
-    int hasErr = 0;
+    int hasErr;
+    
     removingDir = dirJoin(nuDir, "posts");
+    hasErr = 0;
+    
     if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
     }
     free(removingDir);
+    
+    printf("ok\n");fflush(stdout);
+    
     removingDir = dirJoin(nuDir, "special");
-    if (delDir(removingDir) != 0) {
+    
+    printf("ok 1.5, %d, %s\n", hasErr, removingDir);fflush(stdout);
+    
+    if (!hasErr && delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
     }
+    
+    printf("ok 10\n");fflush(stdout);
     free(removingDir);
     return hasErr;
 }
 
 char *getNuDir(int argc, char** argv) {
-    char *buf = calloc(BUF_SIZE, sizeof(char));
+    char *buf;
     char *nuDir;
+    
+    buf = calloc(BUF_SIZE, sizeof(char));
+    
     if (argc == 2) { /* no other arguments passed, assume user means current directory is nudir */
         if (getCurrDir(buf, BUF_SIZE) != 0) return NULL;
         nuDir = buf;
@@ -109,39 +129,32 @@ notnudir:
 extern char *globNuDir;
 static char *normal_template;
 static char *special_template;
+static char *index_template;
+static post_list *pl;
 static template_dictionary *combined_dic;
 
-int builderHelper(char *inFile) {/*
-	// create the post dictionary
-	post_dic = td_new();
-	td_put_val(post_dic, "post.content", ob->data);
-	td_put_val(post_dic, "post.date", str_date);
-	td_put_val(post_dic, "post.time", str_time);
-	td_put_val(post_dic, "post.name", );
-	
-	final = parse_template(, td);
-	
-	// output file
-	out = fopen(outFile, "w+");
-	if (out == NULL) {
-		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open output file %s: ", outFile);
-		perror("");
-		return -1;
-	}
-	
-	fprintf(out, "%s", final);
-	free(outFile);
-	fclose(out);
-	return 0;*/
+int builderHelper(char *inFile) {
+    static post *temp;
+    temp = post_create(inFile);
+    if (temp == NULL) {
+        return -1;
+    }
+    pl_add_post(pl, temp);
+	return 0;
 }
 
 int buildNuDir(char *nuDir) {
-    char *buildingDir, *configContents, *cfgfname, *temp, *themedir;
+    char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
+         *temp = NULL, *themedir = NULL, *templated_output = NULL;
     const char *theme;
-    int ok = 0;
-    template_dictionary *global_dic, *theme_dic;
+    int ok;
+    template_dictionary *global_dic = NULL, *theme_dic = NULL,
+                        *currpost_dic = NULL, *temp_dic = NULL;
+    post_list_elem *currPost = NULL;
+
     buildingDir = dirJoin(nuDir, "raw");
     globNuDir = nuDir;
+    pl = pl_new();
     
     printf("["KBLU"INFO"RESET"] Starting to build the directory `%s`!\n", nuDir);
     
@@ -153,15 +166,14 @@ int buildNuDir(char *nuDir) {
     
     if (configContents == NULL) {
         fprintf(stderr, "["KRED"ERR"RESET"] Could not open the file `%s`.\n", cfgfname);
-        free(cfgfname);
-        return -1;
+        ok = 0;
+        goto end;
     }
-    free(cfgfname);
     
     ok = parse_config(configContents, "", global_dic);
     if (!ok) {
          fprintf(stderr, "["KRED"ERR"RESET"] Errors occured while parsing the global config. Please check them and try again.\n");
-         return -1;
+         goto end;
     }
     free(configContents);
     
@@ -169,26 +181,123 @@ int buildNuDir(char *nuDir) {
     theme = td_fetch_val(global_dic, "theme");
     if (theme == NULL) {
         fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `theme` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
-        return -1;
+        ok = 0;
+        goto end;
     }
     
     temp = dirJoin(nuDir, "theme");
     themedir = dirJoin(temp, theme);
     free(temp);
     
-    /* read theme config */
+    /* check if theme exists */
     if (!(dirExists(themedir) && isNuDir(themedir))) {
         fprintf(stderr, "["KRED"ERR"RESET"] The theme `%s` could not be found! Please make sure it is in the %s directory and has the file `config.kg`.\n", theme, themedir);
+        ok = 0;
+        goto end;
     }
+    
+    /* read theme config */
+    theme_dic = td_new();
+    temp = dirJoin(themedir, "config.kg");
+    configContents = dumpFile(temp);
+    free(temp);
+    ok = parse_config(configContents, "theme.", theme_dic);
+    if (!ok) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Errors occured while parsing the theme config. Please check them and try again.\n");
+        ok = 0;
+        goto end;
+    }
+    free(configContents);
+    
+    /* read the index page for the theme */
+    temp = dirJoin(themedir, "index.html");
+    index_template = dumpFile(temp);
+    if (index_template == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
+        ok = 0;
+        goto end;
+    }
+    free(temp);
+    
+    /* read the post page for the theme */
+    temp = dirJoin(themedir, "post.html");
+    normal_template = dumpFile(temp);
+    if (normal_template == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
+        ok = 0;
+        goto end;
+    }
+    free(temp);
+    
+    /* read the special page for the theme */
+    temp = dirJoin(themedir, "special.html");
+    special_template = dumpFile(temp);
+    if (special_template == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
+        ok = 0;
+        goto end;
+    }
+    free(temp);
     
     /* combine the two dictionaries */
-    /*combined_dic = ;*/
+    combined_dic = td_merge(global_dic, theme_dic);
     
+    /* loop through dir and do all the stuff*/
     if (loopThroughDir(buildingDir, &builderHelper) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to build! Check if you have permissions to create files in `%s/posts` or `%s/special` and try again.\n", nuDir, nuDir);
-        free(buildingDir);
-        return -1;
+        ok = 0;
+        goto end;
     }
-    free(buildingDir);
-    return 0;
+    
+    currPost = pl->head;
+    
+    /* loop through the entire list */
+    while (currPost != NULL) {
+        if ((currPost->me)->delta_time >= 0) { /* skip this post if output file hasn't changed */
+            goto nextpost;
+        }
+        /* populate the dictionary */
+        temp_dic = td_new();
+        td_put_val(temp_dic, "post.name", (currPost->me)->name);
+        td_put_val(temp_dic, "post.contents", (currPost->me)->contents);
+        td_put_val(temp_dic, "post.cdate", (currPost->me)->cdate);
+        td_put_val(temp_dic, "post.mdate", (currPost->me)->mdate);
+        td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
+        td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
+        td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
+        currpost_dic = td_merge(global_dic, temp_dic);
+        
+        if ((currPost->me)->is_special) {
+            templated_output = parse_template(special_template, currpost_dic);
+        } else {
+            templated_output = parse_template(normal_template, currpost_dic);
+        }
+        ok = writeFile((currPost->me)->out_loc, templated_output) + 1;
+        if (!ok) {
+            td_clean(temp_dic);
+            goto end;
+        }
+        
+        /* clean up */
+        free(currpost_dic);
+        td_clean(temp_dic);
+        
+        nextpost:
+        currPost = currPost->next;
+    }
+    /* clear all posts */
+    pl_clean(pl);
+    
+    end:
+    /* need to check if these are null otherwise C will think we've
+        done a double free */
+    if (buildingDir) free(buildingDir);
+    if (configContents) free(configContents);
+    if (cfgfname) free(cfgfname);
+    if (temp) free(temp);
+    if (themedir) free(themedir);
+    if (theme_dic) free(theme_dic);
+    if (global_dic) free(global_dic);
+    if (templated_output) free(templated_output);
+    return ok;
 }

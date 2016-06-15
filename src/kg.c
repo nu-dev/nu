@@ -38,7 +38,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         if (*temp == '\0' || *temp == '\n') {
             fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` does not have a value!\n", currkey);
             free(currkey);
-            return 1;
+            return 0;
         } else if (*temp == '"') { /* if it's a ": */
             /* save that location into a variable */
             currvalue = temp + 1; /* skip past the " */
@@ -49,7 +49,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             if (temp == NULL) {
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` does not have a value!\n", currkey);
                 free(currkey);
-                return 1;
+                return 0;
             }
             
             /* from the previously saved location to the " is the value */
@@ -69,7 +69,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             if (!(*(temp+1) == '<' && *(temp+2) == '<')) {
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` does not have a value!\n", currkey);
                 free(currkey);
-                return 1;
+                return 0;
             }
             temp += 3;
             /* read next 3 non-null characters - if they are null, throw error */
@@ -80,7 +80,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             } else {
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` has an invalid value. For help, please visit the wiki (use the flag `help` for a link).\n", currkey);
                 free(currkey);
-                return 1;
+                return 0;
             }
             
             /* use those 3 characters to look for the end - if not found, throw error */
@@ -89,7 +89,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
                 fprintf(stderr, "["KRED"ERR"RESET"] The config key `%s` has an invalid value. For help, please visit the wiki (use the flag `help` for a link).\n", currkey);
                 free(currkey);
                 free(lookupStr);
-                return 1;
+                return 0;
             }
             
             /* from the variable stored to the recently found end is the value */
@@ -110,7 +110,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         if (last == NULL || *last == '\0')  goto done;
     }
     done:
-    return 0;
+    return 1;
 }
 
 /*

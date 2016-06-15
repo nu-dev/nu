@@ -21,5 +21,6 @@ const char *fileExtension(const char *in);
 const char *fileName(const char *in);
 char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial);
 char *dumpFile(const char *filename);
+int writeFile(const char *filename, const char *toWrite);
 char *parseMD(const char *filename);
 #endif

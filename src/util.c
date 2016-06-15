@@ -2,7 +2,10 @@
 
 /* utility to check if directory exists or not */
 int dirExists(const char *name) {
-    DIR* dir = opendir(name);
+    DIR* dir;
+    
+    dir = opendir(name);
+    
     if (dir) {
         /* Directory exists. */
         closedir(dir);
@@ -16,6 +19,7 @@ int dirExists(const char *name) {
 
 int makeNewDir(const char *dir) {
     int errCode;
+    
     errCode = mkdir(dir, 0700);
     /* if worked, return 1 */
     if (errCode == 0) return 1;
@@ -25,8 +29,10 @@ int makeNewDir(const char *dir) {
 
 char *dirJoin(const char *a, const char *b) {
     /* join string helper function */
-    int lenA = strlen(a);
+    int lenA;
     char *newString;
+    
+    lenA = strlen(a);
     
     /* check if there isn't already a trailing "/" */
     if (a[lenA-1] != '/') {
@@ -61,9 +67,12 @@ int getCurrDir(char *location, int length) {
 
 
 int isNuDir(const char *dir) {
-    char *configName = "config.kg";
+    char *configName;
     FILE *fp;
-    char *checkingFile = dirJoin(dir, configName);
+    char *checkingFile;
+    
+    configName = "config.kg";
+    checkingFile = dirJoin(dir, configName);
     fp = fopen(checkingFile, "r");
     if (fp != NULL) {
         fclose(fp);
@@ -75,11 +84,12 @@ int isNuDir(const char *dir) {
     }
 }
 
-int delDir(const char *dirName) {
-    DIR *folder = opendir(dirName);
+int delDir(const char *dirName) {/*
+    DIR *folder;
     struct dirent *next_file;
     char *toDel;
     
+    folder = opendir(dirName);
     if (folder == NULL) {perror("["KRED"ERR"RESET"] Error opening directory"); return 1;}
     
     while ((next_file = readdir(folder)) != NULL) {
@@ -91,14 +101,25 @@ int delDir(const char *dirName) {
     }
     
     closedir(folder);
+    return 0;*/
+    char *tmp, *tmp2;
+    printf("ok 5\n");fflush(stdout);
+    tmp = strutil_append_no_mutate("rm -rf \"", dirName);
+    printf("ok 6\n");fflush(stdout);
+    tmp2 = strutil_append_no_mutate(tmp, "\"");
+    printf("ok 7\n");fflush(stdout);
+    system(tmp2);
+    free(tmp);
+    free(tmp2);
     return 0;
 }
 
 int loopThroughDir(const char *dirName, dirIterator iter) {
-    DIR *folder = opendir(dirName);
+    DIR *folder;
     struct dirent *next_file;
     char *toRun;
     
+    folder = opendir(dirName);
     if (folder == NULL) {perror("["KRED"ERR"RESET"] Error opening directory"); return 1;}
     
     while ((next_file = readdir(folder)) != NULL) {
@@ -113,7 +134,9 @@ int loopThroughDir(const char *dirName, dirIterator iter) {
 }
 
 const char *fileExtension(const char *in) {
-    char *dot = strrchr(in, '.');
+    char *dot;
+    
+    dot = strrchr(in, '.');
     if(!dot || dot == in) return "";
     return dot + 1;
 }
@@ -167,9 +190,11 @@ char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial) {
 
 char *dumpFile(const char *filename) {
     /* http://stackoverflow.com/questions/174531/easiest-way-to-get-files-contents-in-c */
-    char * buffer = 0;
+    char *buffer = 0;
     long length;
-    FILE * f = fopen (filename, "rb");
+    FILE *f;
+    
+    f = fopen (filename, "rb");
     
     if (f) {
         fseek(f, 0, SEEK_END);
@@ -183,10 +208,25 @@ char *dumpFile(const char *filename) {
     }
     
     if (buffer) {
-        /* start to process your data / extract strings here... */
         return buffer;
     }
     return NULL;
+}
+
+int writeFile(const char *filename, const char *toWrite) {
+    FILE *fp;
+    
+    fp = fopen(filename, "w+");
+    
+    if (fp != NULL) {
+        fputs(toWrite, fp);
+        fclose(fp);
+        return 0;
+    } else {
+        fprintf(stderr, "["KRED"ERR"RESET"] Failed to write to output file %s: ", filename);
+        perror("");
+        return -1;
+    }
 }
 
 char *parseMD(const char *filename) {
@@ -207,7 +247,7 @@ char *parseMD(const char *filename) {
 	}
 	
 	/* Use hoedown to parse Markdown
-	   If you don't understand this code, check out https://github.com/hoedown/hoedown/wiki/Getting-Started
+	   If you don't understand this code, check out https://github.com/hoedown/hoedown/wiki/Getting-Started */
 	/* create the buffers */
 	ib = hoedown_buffer_new(16);
 	hoedown_buffer_putf(ib, in);
@@ -227,7 +267,7 @@ char *parseMD(const char *filename) {
 	
 	removeCount = strutil_remove_unicode(ob->data, ob->size, &ret);
 	if (removeCount > 0) {
-	    printf("["KYEL"WARN"RESET"] Unicode characters were found in the file %s. Unfortunately, nu v"NU_VERSION" currently does NOT support unicode, and so these characters were removed.\n", filename);
+	    printf("["KYEL"WARN"RESET"] Unicode characters were found in the file `%s`. Unfortunately, nu v"NU_VERSION" currently does NOT support unicode, so those characters were removed.\n", filename);
 	}
 	return ret;
 }

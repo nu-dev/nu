@@ -19,38 +19,48 @@ void pl_add_post(post_list *in, post *postAdd) { /* set up the new post_list_ele
 post *post_create(const char *in_fpath) {
     const char *temp;
     char *timestamp;
-    struct stat attr;
+    struct stat inattr, outattr;
     time_t inTime, outTime;
-    struct tm *time_tm, createTime;
+    struct tm *inTime_tm, createTime;
     post *to = malloc(sizeof(post));
     
     /* in_fn -- make sure to get the right part */
     to->in_fn = strdup(fileName(in_fpath) + 1);
-    
-    stat(to->in_fn, &attr);
-	inTime = attr.st_mtime;
 	
-	/* out_loc */
-    to->out_loc = getOutputFileName(to->in_fn, globNuDir, &(to->isSpecial));
-    
-	stat(to->out_loc, &attr);
-	outTime = attr.st_mtime;
+	/* last modified time and date */
+    stat(in_fpath, &inattr);
+	inTime = inattr.st_mtime;
+	inTime_tm = localtime(&inTime);
+	strftime(to->mtime, 11, "%H:%M:%S", inTime_tm);
+    strftime(to->mdate, 50, "%B %d, %Y", inTime_tm);
 	
-	/* parsed contents - only parse if difftime > 0. otherwise,  */
-    if (difftime(inTime, outTime) <= 0) {
+	/* out_loc and is_special */
+    to->out_loc = getOutputFileName(to->in_fn, globNuDir, &(to->is_special));
+    
+    /* delta_time */
+	if (stat(to->out_loc, &outattr) != 0) {
+	    to->delta_time = -1;
+	} else {
+	    outTime = outattr.st_mtime;
+        to->delta_time = difftime(inTime, outTime);
+	}
+	
+	to->contents = parseMD(in_fpath);
+	/* parsed contents - only parse if difftime > 0. otherwise,  
+    if (to->delta_time >= 0) {
         to->contents = parseMD(in_fpath);
         if (to->contents == NULL) {
-            /* error while parsing */
+            error while parsing
             return NULL;
         }
     } else {
         to->contents = NULL;
-    }
+    }*/
 	
 	/* post name and creation time */
     temp = to->in_fn;
     
-    if (to->isSpecial) {
+    if (to->is_special) {
         /* no creation date */
         /* post name is just whatever minus the HTML */
         to->name = strndup(temp, strlen(temp) - 5); /* ".html" = 5 chars */
@@ -65,19 +75,14 @@ post *post_create(const char *in_fpath) {
         if (strptime(timestamp, "%Y-%m-%d", &createTime) != NULL) {
             strftime(to->cdate, 50, "%B %d, %Y", &createTime);
         } else {
-            fprintf(stderr, "error while parsing time\n"); /* TODO after tomorrow - continue here */
-            /* throw some other error here, maybe even return NULL? */
+            fprintf(stderr, "["KRED"ERR"RESET"] Error while parsing time. This should not happen!!\n");
+            return NULL;
         }
         free(timestamp);
         
         /* post name is temp minus the html */
         to->name = strndup(temp, strlen(temp) - 3); /* ".html" = 5 chars */
     }
-	
-	/* last modified time and date */
-	time_tm = localtime(&inTime);
-	strftime(to->mtime, 11, "%H:%M:%S", time_tm);
-    strftime(to->mdate, 50, "%B %d, %Y", time_tm);
     
     return to;
 }
@@ -115,19 +120,20 @@ post_list *pl_new() {
     toCreate->length = 0;
     return toCreate;
 }
-
+/*
 int main() {
     post *test;
     globNuDir = "/home/ubuntu/workspace/fs-layout/";
     test = post_create("/home/ubuntu/workspace/fs-layout/raw/2015-11-17-Test post.md");
-    printf("post.name: %s\n", test->name);
-    printf("post.contents: %s\n", test->contents);
-    printf("post.cdate: %s\n", test->cdate);
-    printf("post.mdate: %s\n", test->mdate);
-    printf("post.mtime: %s\n", test->mtime);
-    printf("post.in_fn: %s\n", test->in_fn);
-    printf("post.out_loc: %s\n", test->out_loc);
-    printf("post.deltaTime: %d\n", test->deltaTime);
-    printf("post.isSpecial: %d\n", test->isSpecial);
+    printf("post.name: `%s`\n", test->name);
+    printf("post.contents: `%s`\n", test->contents);
+    printf("post.cdate: `%s`\n", test->cdate);
+    printf("post.mdate: `%s`\n", test->mdate);
+    printf("post.mtime: `%s`\n", test->mtime);
+    printf("post.in_fn: `%s`\n", test->in_fn);
+    printf("post.out_loc: `%s`\n", test->out_loc);
+    printf("post.delta_time: `%f`\n", test->delta_time);
+    printf("post.is_special: `%d`\n", test->is_special);
+    post_free(test);
     return 0;
-}
+}*/

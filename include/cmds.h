@@ -5,6 +5,7 @@
 #include "unvo.h"
 #include "kg.h"
 #include "dictionary.h"
+#include "post.h"
 
 int newSrv(char *name);
 int cleanNuDir(char *nuDir);
