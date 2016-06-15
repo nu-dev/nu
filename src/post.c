@@ -39,7 +39,7 @@ post *post_create(const char *in_fpath) {
     
     /* delta_time */
 	if (stat(to->out_loc, &outattr) != 0) {
-	    to->delta_time = -1;
+	    to->delta_time = 100;
 	} else {
 	    outTime = outattr.st_mtime;
         to->delta_time = difftime(inTime, outTime);
@@ -63,7 +63,7 @@ post *post_create(const char *in_fpath) {
     if (to->is_special) {
         /* no creation date */
         /* post name is just whatever minus the HTML */
-        to->name = strndup(temp, strlen(temp) - 5); /* ".html" = 5 chars */
+        to->name = strndup(temp, strlen(temp) - 3); /* ".html" = 5 chars */
     } else {
         /* timestamp is temp and 10 chars past */
         timestamp = strndup(temp, 10);

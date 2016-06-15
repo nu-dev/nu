@@ -3,9 +3,7 @@
 /* utility to check if directory exists or not */
 int dirExists(const char *name) {
     DIR* dir;
-    printf("opening dir %s\n", name);fflush(stdout);
     dir = opendir(name);
-    printf("dw\n");fflush(stdout);
     if (dir) {
         /* Directory exists. */
         closedir(dir);
@@ -32,12 +30,12 @@ char *dirJoin(const char *a, const char *b) {
     int lenA;
     char *newString;
     
-    lenA = strlen(a) + 1; /* for the null at the end*/
+    lenA = strlen(a); /* for the null at the end*/
     
     /* check if there isn't already a trailing "/" */
     if (a[lenA-1] != '/') {
         /* allocate memory for them */
-        newString = calloc(lenA+strlen(b)+1, sizeof(char));
+        newString = calloc(lenA+strlen(b)+2, sizeof(char));
         /* copy over first part */
         strcpy(newString, a);
         /* the slash */
@@ -46,7 +44,7 @@ char *dirJoin(const char *a, const char *b) {
         strcpy(&newString[lenA+1], b);
     } else {
         /* allocate memory for them */
-        newString = calloc(lenA+strlen(b), sizeof(char));
+        newString = calloc(lenA+strlen(b)+1, sizeof(char));
         /* copy over first part */
         strcpy(newString, a);
         /* then the new folder name */
@@ -88,29 +86,25 @@ int delDir(const char *dirName) {
     char *toDel;
     
     folder = opendir(dirName);
-    if (folder == NULL) {/*fprintf(stderr, "["KRED"ERR"RESET"] Error opening directory %s: ", dirName); perror("");*/ return 0;}
+    if (folder == NULL) { /* already been deleted */ return 0; }
     
     while ((next_file = readdir(folder)) != NULL) {
         if (*(next_file->d_name) == '.') continue;
         toDel = dirJoin(dirName, next_file->d_name);
         if (dirExists(toDel)) delDir(toDel);
-        if (remove(toDel) != 0) {fprintf(stderr, "["KRED"ERR"RESET"] Error clearing file %s: ", toDel); perror(""); free(toDel); return 1;}
-        else {printf("["KBLU"INFO"RESET"] Removed file %s", toDel);}
+        if (remove(toDel) != 0) {
+            fprintf(stderr, "["KRED"ERR"RESET"] Error clearing file %s: ", toDel);
+            perror("");
+            free(toDel);
+            return 1;
+        } else {
+            printf("["KBLU"INFO"RESET"] Removed file %s!\n", toDel);
+        }
         free(toDel);
     }
     
     closedir(folder);
-    return 0;/*
-    char *tmp, *tmp2;
-    printf("ok 5\n");fflush(stdout);
-    tmp = strutil_append_no_mutate("rm -rf \"", dirName);
-    printf("ok 6\n");fflush(stdout);
-    tmp2 = strutil_append_no_mutate(tmp, "\"");
-    printf("ok 7\n");fflush(stdout);
-    system(tmp2);
-    free(tmp);
-    free(tmp2);
-    return 0;*/
+    return 0;
 }
 
 int loopThroughDir(const char *dirName, dirIterator iter) {

@@ -1,3 +1,4 @@
 # nu default config
 # for help, please visit https://github.com/ohnx/nu/wiki
 theme = "basic"
+sitename = "nu test blog"

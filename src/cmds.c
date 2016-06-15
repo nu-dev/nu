@@ -264,7 +264,7 @@ int buildNuDir(char *nuDir) {
         td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
         td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
         td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
-        currpost_dic = td_merge(global_dic, temp_dic);
+        currpost_dic = td_merge(combined_dic, temp_dic);
         
         if ((currPost->me)->is_special) {
             templated_output = parse_template(special_template, currpost_dic);

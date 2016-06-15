@@ -1,3 +1,29 @@
-# nu default config
-# for help, please visit https://github.com/ohnx/nu/wiki
-wat ="basic"
+# basic theme by ohnx
+openhead = <<<FIN
+<!DOCTYPE html>
+<html lang="en">
+    <html>
+FIN
+specialstyle = "<link href='../theme/basic/style.css' rel='stylesheet' type='text/css'>"
+poststyle = "<link href='../../../../theme/basic/style.css' rel='stylesheet' type='text/css'>"
+closehead = "</head>"
+openbody = "<body>"
+openheader = <<<END
+    <div class="header"><h1 class="header-title">
+END
+closeheader = "</h1></div>"
+nav = <<<END
+<div class="navbar"></div>
+END
+opencontent = <<<END
+<div class="content">
+END
+closecontent = "</div>"
+closebody = <<<END
+<div class="footer">
+<hr />
+Site built using nu and the basic theme.
+</div>
+</body>
+</html>
+END
