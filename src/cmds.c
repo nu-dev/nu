@@ -14,17 +14,13 @@ int newSrv(char *name) {
     int cwdLen;
     int i;
     char *dirsToMake[DIRSTOMAKECOUNT] = {"", "posts", "raw", "resources", "special", "theme"};
-    char *configName;
-    int configNameLength;
     char *newDirName;
     FILE *fp;
     
     nameLen = strlen(name);
     cwdLen = 0;
-    configName = "config.kg";
-    configNameLength = 9;
     
-    if(getCurrDir(newsrv_buf, BUF_SIZE - nameLen - configNameLength) == -1) {
+    if(getCurrDir(newsrv_buf, BUF_SIZE - nameLen - NU_CONFIG_NAME_LENGTH) == -1) {
         return -1;
     }
     cwdLen = strlen(newsrv_buf);
@@ -53,8 +49,7 @@ int newSrv(char *name) {
     
     /* copy over config name */
     newsrv_buf[cwdLen+nameLen+1] = '/';
-    for (i = 0; i < configNameLength; i++)
-        newsrv_buf[cwdLen+nameLen+i+2] = configName[i];
+    strncpy(&newsrv_buf[cwdLen+nameLen+2], NU_CONFIG_NAME, NU_CONFIG_NAME_LENGTH);
 
     /* create the file */
     fp = fopen(newsrv_buf, "w");
@@ -121,7 +116,7 @@ char *getNuDir(int argc, char** argv) {
     if (!isNuDir(nuDir)) goto notnudir;
     return nuDir;
 notnudir:
-    fprintf(stderr, "["KRED"ERR"RESET"] The specified directory %s is not a valid nu directory. Please check that the file `config.kg` exists and try again.\n", nuDir);
+    fprintf(stderr, "["KRED"ERR"RESET"] The specified directory %s is not a valid nu directory. Please check that the file `"NU_CONFIG_NAME"` exists and try again.\n", nuDir);
     free(nuDir);
     return NULL;
 }
@@ -161,7 +156,7 @@ int buildNuDir(char *nuDir) {
     /* parse global config */
     printf("["KBLU"INFO"RESET"] Parsing global nu config...\n");
     global_dic = td_new();
-    cfgfname = dirJoin(nuDir, "config.kg");
+    cfgfname = dirJoin(nuDir, NU_CONFIG_NAME);
     configContents = dumpFile(cfgfname);
     
     if (configContents == NULL) {
@@ -192,14 +187,14 @@ int buildNuDir(char *nuDir) {
     
     /* check if theme exists */
     if (!(dirExists(themedir) && isNuDir(themedir))) {
-        fprintf(stderr, "["KRED"ERR"RESET"] The theme `%s` could not be found! Please make sure it is in the %s directory and has the file `config.kg`.\n", theme, themedir);
+        fprintf(stderr, "["KRED"ERR"RESET"] The theme `%s` could not be found! Please make sure it is in the %s directory and has the file `"NU_CONFIG_NAME"`.\n", theme, themedir);
         ok = 0;
         goto end;
     }
     
     /* read theme config */
     theme_dic = td_new();
-    temp = dirJoin(themedir, "config.kg");
+    temp = dirJoin(themedir, NU_CONFIG_NAME);
     configContents = dumpFile(temp);
     freeThenNull(temp);
     ok = parse_config(configContents, "theme.", theme_dic);

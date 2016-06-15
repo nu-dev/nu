@@ -67,12 +67,10 @@ int getCurrDir(char *location, int length) {
 
 
 int isNuDir(const char *dir) {
-    char *configName;
     FILE *fp;
     char *checkingFile;
     
-    configName = "config.kg";
-    checkingFile = dirJoin(dir, configName);
+    checkingFile = dirJoin(dir, NU_CONFIG_NAME);
     fp = fopen(checkingFile, "r");
     if (fp != NULL) {
         fclose(fp);
