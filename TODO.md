@@ -1,2 +1,0 @@
- - [ ] Better config parsing
- - [ ] Dynamically allocate enough room for directory name string
