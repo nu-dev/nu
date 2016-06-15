@@ -23,4 +23,5 @@ char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial);
 char *dumpFile(const char *filename);
 int writeFile(const char *filename, const char *toWrite);
 char *parseMD(const char *filename);
+int createDirs(const char *filename);
 #endif

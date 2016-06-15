@@ -215,17 +215,27 @@ char *dumpFile(const char *filename) {
 
 int writeFile(const char *filename, const char *toWrite) {
     FILE *fp;
-    
+    int throwErr;
+    throwErr = 0;
+retry:
     fp = fopen(filename, "w+");
     
     if (fp != NULL) {
         fputs(toWrite, fp);
         fclose(fp);
+        throwErr = 0;
         return 0;
     } else {
-        fprintf(stderr, "["KRED"ERR"RESET"] Failed to write to output file %s: ", filename);
-        perror("");
-        return -1;
+        if (throwErr) {
+            fprintf(stderr, "["KRED"ERR"RESET"] Failed to write to output file %s: ", filename);
+            perror("");
+            return -1;
+        } else {
+            /* try creating the dir instead */
+            createDirs(filename);
+            throwErr = 1;
+            goto retry;
+        }
     }
 }
 
@@ -270,4 +280,21 @@ char *parseMD(const char *filename) {
 	    printf("["KYEL"WARN"RESET"] Unicode characters were found in the file `%s`. Unfortunately, nu v"NU_VERSION" currently does NOT support unicode, so those characters were removed.\n", filename);
 	}
 	return ret;
+}
+
+int createDirs(const char *filename) {
+    char *temp, *curr;
+    struct stat st = {0};
+    
+    temp = strdup(filename);
+    curr = strrchr(temp, '/');
+    *curr = '\0';
+    
+    if (stat(temp, &st) == -1) {
+        createDirs(temp);
+        mkdir(temp, 0700);
+    }
+    
+    free(temp);
+    return 0;
 }
