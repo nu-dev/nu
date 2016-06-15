@@ -9,7 +9,7 @@ static const char *defaultConfig_contents =
 "ignore_newer_post = \"1\"\n";
 
 int newSrv(char *name) {
-    #define DIRSTOMAKECOUNT 6
+    const int DIRSTOMAKECOUNT = 6;
     int nameLen;
     int cwdLen;
     int i;
@@ -22,7 +22,7 @@ int newSrv(char *name) {
     nameLen = strlen(name);
     cwdLen = 0;
     configName = "config.kg";
-    configNameLength = strlen(configName);
+    configNameLength = 9;
     
     if(getCurrDir(newsrv_buf, BUF_SIZE - nameLen - configNameLength) == -1) {
         return -1;
