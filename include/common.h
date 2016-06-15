@@ -42,6 +42,7 @@
         #define RESET ""
     #endif
 #endif
+#define freeThenNull(x) do {free(x); x=NULL;} while(0);
 
 /* nu version */
 #define NU_VERSION      "0.0.1 pre-alpha"

@@ -175,7 +175,8 @@ int buildNuDir(char *nuDir) {
          fprintf(stderr, "["KRED"ERR"RESET"] Errors occured while parsing the global config. Please check them and try again.\n");
          goto end;
     }
-    free(configContents);
+    freeThenNull(configContents);
+    
     
     /* check if theme config specified */
     theme = td_fetch_val(global_dic, "theme");
@@ -187,7 +188,7 @@ int buildNuDir(char *nuDir) {
     
     temp = dirJoin(nuDir, "theme");
     themedir = dirJoin(temp, theme);
-    free(temp);
+    freeThenNull(temp);
     
     /* check if theme exists */
     if (!(dirExists(themedir) && isNuDir(themedir))) {
@@ -200,14 +201,14 @@ int buildNuDir(char *nuDir) {
     theme_dic = td_new();
     temp = dirJoin(themedir, "config.kg");
     configContents = dumpFile(temp);
-    free(temp);
+    freeThenNull(temp);
     ok = parse_config(configContents, "theme.", theme_dic);
     if (!ok) {
         fprintf(stderr, "["KRED"ERR"RESET"] Errors occured while parsing the theme config. Please check them and try again.\n");
         ok = 0;
         goto end;
     }
-    free(configContents);
+    freeThenNull(configContents);
     
     /* read the index page for the theme */
     temp = dirJoin(themedir, "index.html");
@@ -217,7 +218,7 @@ int buildNuDir(char *nuDir) {
         ok = 0;
         goto end;
     }
-    free(temp);
+    freeThenNull(temp);
     
     /* read the post page for the theme */
     temp = dirJoin(themedir, "post.html");
@@ -227,7 +228,7 @@ int buildNuDir(char *nuDir) {
         ok = 0;
         goto end;
     }
-    free(temp);
+    freeThenNull(temp);
     
     /* read the special page for the theme */
     temp = dirJoin(themedir, "special.html");
@@ -237,7 +238,7 @@ int buildNuDir(char *nuDir) {
         ok = 0;
         goto end;
     }
-    free(temp);
+    freeThenNull(temp);
     
     /* combine the two dictionaries */
     combined_dic = td_merge(global_dic, theme_dic);
@@ -256,6 +257,7 @@ int buildNuDir(char *nuDir) {
         if ((currPost->me)->delta_time >= 0) { /* skip this post if output file hasn't changed */
             goto nextpost;
         }
+        printf("["KBLU"INFO"RESET"] Building file %s to %s!\n", (currPost->me)->in_fn, (currPost->me)->out_loc);
         /* populate the dictionary */
         temp_dic = td_new();
         td_put_val(temp_dic, "post.name", (currPost->me)->name);
@@ -279,10 +281,10 @@ int buildNuDir(char *nuDir) {
         }
         
         /* clean up */
-        free(currpost_dic);
+        freeThenNull(currpost_dic);
         td_clean(temp_dic);
         
-        nextpost:
+    nextpost:
         currPost = currPost->next;
     }
     /* clear all posts */
@@ -291,13 +293,13 @@ int buildNuDir(char *nuDir) {
     end:
     /* need to check if these are null otherwise C will think we've
         done a double free */
-    if (buildingDir) free(buildingDir);
-    if (configContents) free(configContents);
-    if (cfgfname) free(cfgfname);
-    if (temp) free(temp);
-    if (themedir) free(themedir);
-    if (theme_dic) free(theme_dic);
-    if (global_dic) free(global_dic);
-    if (templated_output) free(templated_output);
-    return ok;
+    free(buildingDir);
+    free(configContents);
+    free(cfgfname);
+    free(temp);
+    free(themedir);
+    free(theme_dic);
+    free(global_dic);
+    free(templated_output);
+    return !ok;
 }
