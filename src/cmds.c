@@ -9,7 +9,7 @@ static const char *defaultConfig_contents =
 "ignore_newer_post = \"1\"\n";
 
 int newSrv(char *name) {
-    const int DIRSTOMAKECOUNT = 6;
+    #define DIRSTOMAKECOUNT 6
     int nameLen;
     int cwdLen;
     int i;
