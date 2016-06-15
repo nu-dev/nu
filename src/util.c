@@ -3,9 +3,9 @@
 /* utility to check if directory exists or not */
 int dirExists(const char *name) {
     DIR* dir;
-    
+    printf("opening dir %s\n", name);fflush(stdout);
     dir = opendir(name);
-    
+    printf("dw\n");fflush(stdout);
     if (dir) {
         /* Directory exists. */
         closedir(dir);
@@ -32,7 +32,7 @@ char *dirJoin(const char *a, const char *b) {
     int lenA;
     char *newString;
     
-    lenA = strlen(a);
+    lenA = strlen(a) + 1; /* for the null at the end*/
     
     /* check if there isn't already a trailing "/" */
     if (a[lenA-1] != '/') {
@@ -82,24 +82,25 @@ int isNuDir(const char *dir) {
     }
 }
 
-int delDir(const char *dirName) {/*
+int delDir(const char *dirName) {
     DIR *folder;
     struct dirent *next_file;
     char *toDel;
     
     folder = opendir(dirName);
-    if (folder == NULL) {perror("["KRED"ERR"RESET"] Error opening directory"); return 1;}
+    if (folder == NULL) {/*fprintf(stderr, "["KRED"ERR"RESET"] Error opening directory %s: ", dirName); perror("");*/ return 0;}
     
     while ((next_file = readdir(folder)) != NULL) {
         if (*(next_file->d_name) == '.') continue;
         toDel = dirJoin(dirName, next_file->d_name);
+        if (dirExists(toDel)) delDir(toDel);
         if (remove(toDel) != 0) {fprintf(stderr, "["KRED"ERR"RESET"] Error clearing file %s: ", toDel); perror(""); free(toDel); return 1;}
         else {printf("["KBLU"INFO"RESET"] Removed file %s", toDel);}
         free(toDel);
     }
     
     closedir(folder);
-    return 0;*/
+    return 0;/*
     char *tmp, *tmp2;
     printf("ok 5\n");fflush(stdout);
     tmp = strutil_append_no_mutate("rm -rf \"", dirName);
@@ -109,7 +110,7 @@ int delDir(const char *dirName) {/*
     system(tmp2);
     free(tmp);
     free(tmp2);
-    return 0;
+    return 0;*/
 }
 
 int loopThroughDir(const char *dirName, dirIterator iter) {

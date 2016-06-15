@@ -73,24 +73,21 @@ int cleanNuDir(char *nuDir) {
     removingDir = dirJoin(nuDir, "posts");
     hasErr = 0;
     
+    printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
     if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
     }
     free(removingDir);
     
-    printf("ok\n");fflush(stdout);
-    
     removingDir = dirJoin(nuDir, "special");
     
-    printf("ok 1.5, %d, %s\n", hasErr, removingDir);fflush(stdout);
-    
+    printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
     if (!hasErr && delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
     }
     
-    printf("ok 10\n");fflush(stdout);
     free(removingDir);
     return hasErr;
 }
@@ -184,6 +181,7 @@ int buildNuDir(char *nuDir) {
     temp = dirJoin(nuDir, "theme");
     themedir = dirJoin(temp, theme);
     freeThenNull(temp);
+    printf("["KBLU"INFO"RESET"] Parsing theme config from %s...\n", theme);
     
     /* check if theme exists */
     if (!(dirExists(themedir) && isNuDir(themedir))) {
@@ -206,6 +204,7 @@ int buildNuDir(char *nuDir) {
     freeThenNull(configContents);
     
     /* read the index page for the theme */
+    printf("["KBLU"INFO"RESET"] Reading index page template...\n");
     temp = dirJoin(themedir, "index.html");
     index_template = dumpFile(temp);
     if (index_template == NULL) {
@@ -216,6 +215,7 @@ int buildNuDir(char *nuDir) {
     freeThenNull(temp);
     
     /* read the post page for the theme */
+    printf("["KBLU"INFO"RESET"] Reading post page template...\n");
     temp = dirJoin(themedir, "post.html");
     normal_template = dumpFile(temp);
     if (normal_template == NULL) {
@@ -226,6 +226,7 @@ int buildNuDir(char *nuDir) {
     freeThenNull(temp);
     
     /* read the special page for the theme */
+    printf("["KBLU"INFO"RESET"] Reading special page template...\n");
     temp = dirJoin(themedir, "special.html");
     special_template = dumpFile(temp);
     if (special_template == NULL) {
@@ -238,6 +239,7 @@ int buildNuDir(char *nuDir) {
     /* combine the two dictionaries */
     combined_dic = td_merge(global_dic, theme_dic);
     
+    printf("["KBLU"INFO"RESET"] Creating list of posts...\n");
     /* loop through dir and do all the stuff*/
     if (loopThroughDir(buildingDir, &builderHelper) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to build! Check if you have permissions to create files in `%s/posts` or `%s/special` and try again.\n", nuDir, nuDir);
@@ -249,10 +251,10 @@ int buildNuDir(char *nuDir) {
     
     /* loop through the entire list */
     while (currPost != NULL) {
-        if ((currPost->me)->delta_time >= 0) { /* skip this post if output file hasn't changed */
+        if ((currPost->me)->delta_time <= 0) { /* skip this post if output file hasn't changed */
             goto nextpost;
         }
-        printf("["KBLU"INFO"RESET"] Building file %s to %s!\n", (currPost->me)->in_fn, (currPost->me)->out_loc);
+        printf("["KBLU"INFO"RESET"] Building file %s to %s...\n", (currPost->me)->in_fn, (currPost->me)->out_loc);
         /* populate the dictionary */
         temp_dic = td_new();
         td_put_val(temp_dic, "post.name", (currPost->me)->name);
@@ -282,6 +284,10 @@ int buildNuDir(char *nuDir) {
     nextpost:
         currPost = currPost->next;
     }
+    
+    /* create all the pages */
+    
+    
     /* clear all posts */
     pl_clean(pl);
     
