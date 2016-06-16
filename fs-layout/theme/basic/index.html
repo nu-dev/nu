@@ -1,15 +1,14 @@
 {{ theme.openhead }}
-{{ theme.poststyle }}
-<title>{{ sitename }} &middot; {{ post.name }}</title>
+{{ theme.style }}
+<title>{{ sitename }} &middot</title>
 {{ theme.closehead }}
 {{ theme.openbody }}
 {{ theme.openheader }}
-<h1 class="header-title"><a href="/fs-layout/" class="unstyled">{{ sitename }}</a></h1>
+<h1 class="header-title"><a href="{{linkprefix}}/" class="unstyled">{{ sitename }}</a></h1>
 <p class="tagline">{{ sitedesc }}</p>{{ theme.closeheader }}
 {{ theme.nav }}
-{{ theme.opencontent }}
 {{ pagination.currpage }}
+{{ theme.opencontent }}
 <a href="{{ pagination.older_link }}">Older</a> | <a href="{{ pagination.newer_link }}">Newer</a>
-{{ post.contents }}
 {{ theme.closecontent }}
 {{ theme.closebody }}

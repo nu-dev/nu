@@ -1,3 +1,5 @@
-# about me
+# about the site {{sitename}}
 
-i am mason. i am cow.
+this is the nu test site page whatever thing.
+
+{{ coolhackbro}}

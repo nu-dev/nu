@@ -3,3 +3,5 @@
 theme = "basic"
 sitename = "nu test blog"
 sitedesc = "A simple blog that demonstrates how nu works."
+linkprefix = "/fs-layout"
+coolhackbro = "heh lol this is a cool hack"

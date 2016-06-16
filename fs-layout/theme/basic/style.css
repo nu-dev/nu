@@ -9,6 +9,20 @@ body {
     min-height: 100%;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
+    font-weight: normal;
+}
+
+a {
+    color: #1e73be;
+}
+
+a:hover {
+    color: #000;
+}
+
 .header, .footer {
     background-color: #333;
     color: #fff;
@@ -19,7 +33,6 @@ body {
 
 .footer {
     text-align: center;
-    position: absolute;
     bottom: 0;
     width: 100%;
     padding: 1em 0;
@@ -35,6 +48,10 @@ body {
 .unstyled {
     color: #fff;
     text-decoration: none;
+}
+
+.unstyled:hover {
+    color: #fff;
 }
 
 .tagline {
@@ -74,6 +91,7 @@ body {
 
 .nav-itm:hover {
     background-color: #DE0000;
+    color: #fff;
 }
 
 .content {
@@ -87,8 +105,12 @@ body {
     font-size: 2.5em;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    margin: 0;
+.postlink {
+    text-decoration: none;
+    color: #333;
+}
+
+.postinfo {
     font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
-    font-weight: normal;
+    color: #666;
 }

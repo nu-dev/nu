@@ -1,16 +1,16 @@
 {{ theme.openhead }}
-{{ theme.poststyle }}
+{{ theme.style }}
 <title>{{ sitename }} &middot; {{ post.name }}</title>
 {{ theme.closehead }}
 {{ theme.openbody }}
 {{ theme.openheader }}
-<h1 class="header-title"><a href="/fs-layout/" class="unstyled">{{ sitename }}</a></h1>
+<h1 class="header-title"><a href="{{linkprefix}}/" class="unstyled">{{ sitename }}</a></h1>
 <p class="tagline">{{ sitedesc }}</p>{{ theme.closeheader }}
 {{ theme.nav }}
 {{ theme.opencontent }}
 <h1 class="postname">{{ post.name }}</h1>
-Created: {{ post.cdate }}<br />
-Last modified: {{ post.mdate }} at {{ post.mtime }}<br />
+<div class="postinfo">Created: {{ post.cdate }}<br />
+Last modified: {{ post.mdate }} at {{ post.mtime }}<br /></div>
 {{ post.contents }}
 {{ theme.closecontent }}
 {{ theme.closebody }}

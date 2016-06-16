@@ -73,7 +73,7 @@ int cleanNuDir(char *nuDir) {
     hasErr = 0;
     
     removingDir = dirJoin(nuDir, "posts");
-    printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
+    printf("["KBLU"INFO"RESET"] Deleting directory %s...\n", removingDir);
     if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
@@ -82,7 +82,7 @@ int cleanNuDir(char *nuDir) {
     freeThenNull(removingDir);
     
     removingDir = dirJoin(nuDir, "special");
-    printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
+    printf("["KBLU"INFO"RESET"] Deleting directory %s...\n", removingDir);
     if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
@@ -91,7 +91,7 @@ int cleanNuDir(char *nuDir) {
     freeThenNull(removingDir);
     
     removingDir = dirJoin(nuDir, "page");
-    printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
+    printf("["KBLU"INFO"RESET"] Deleting directory %s...\n", removingDir);
     if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
@@ -134,7 +134,9 @@ extern char *globNuDir;
 static char *normal_template;
 static char *special_template;
 static char *index_template;
-static post_list *pl;
+static char *singlepost_template;
+static post_list *pl = NULL;
+static post_frag_list *pfl = NULL;
 static template_dictionary *combined_dic;
 
 int builderHelper(char *inFile) {
@@ -149,16 +151,21 @@ int builderHelper(char *inFile) {
 
 int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
-         *temp = NULL, *themedir = NULL, *templated_output = NULL;
-    const char *theme;
+         *temp = NULL, *themedir = NULL, *templated_output = NULL,
+         *temp2 = NULL, *currpage = NULL;/*, *lastPage = NULL, *nextPage = NULL;*/
+    const char *theme, *maxperpage;
+    char pagenum_buf[15];/*, pagenum_buf2[15];*/
     int ok;
+    unsigned int pagenum, i, maxPostsPerPage;
     template_dictionary *global_dic = NULL, *theme_dic = NULL,
                         *currpost_dic = NULL, *temp_dic = NULL;
     post_list_elem *currPost = NULL;
+    post_frag_list_elem *currFrag = NULL;
 
     buildingDir = dirJoin(nuDir, "raw");
     globNuDir = nuDir;
     pl = pl_new();
+    pfl = pfl_new();
     
     printf("["KBLU"INFO"RESET"] Starting to build the directory `%s`!\n", nuDir);
     
@@ -226,6 +233,17 @@ int buildNuDir(char *nuDir) {
     }
     freeThenNull(temp);
     
+    /* read the single post fragment for the theme */
+    printf("["KBLU"INFO"RESET"] Reading index page template...\n");
+    temp = dirJoin(themedir, "singlepost.fragment");
+    singlepost_template = dumpFile(temp);
+    if (singlepost_template == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
+        ok = 0;
+        goto end;
+    }
+    freeThenNull(temp);
+    
     /* read the post page for the theme */
     printf("["KBLU"INFO"RESET"] Reading post page template...\n");
     temp = dirJoin(themedir, "post.html");
@@ -282,7 +300,25 @@ int buildNuDir(char *nuDir) {
             templated_output = parse_template(special_template, currpost_dic);
         } else {
             templated_output = parse_template(normal_template, currpost_dic);
+
+            temp = calcPermalink((currPost->me)->out_loc);
+            td_put_val(currpost_dic, "post.link", temp);
+            freeThenNull(temp);
+            /* double pass */
+            temp = parse_template(singlepost_template, currpost_dic);
+            temp2 = parse_template(temp, currpost_dic);
+            freeThenNull(temp);
+            
+            /* add post fragment */
+            pfl_add(pfl, temp2);
+            freeThenNull(temp2);
         }
+        
+        /* double pass */
+        temp = templated_output;
+        templated_output = parse_template(temp, currpost_dic);
+        freeThenNull(temp);
+        
         ok = writeFile((currPost->me)->out_loc, templated_output) + 1;
         if (!ok) {
             td_clean(temp_dic);
@@ -298,27 +334,93 @@ int buildNuDir(char *nuDir) {
     }
     
     /* create all the pages */
-    /* check if theme config max posts per page 
-    temp = td_fetch_val(global_dic, "theme");
-    if (theme == NULL) {
-        fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `theme` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
-        ok = 0;
-        goto end;
-    }*/
+    /* check if theme config max posts per page */
+    maxperpage = td_fetch_val(theme_dic, "theme.maxpostsperpage");
+    if (maxperpage == NULL || (maxPostsPerPage = atoi(maxperpage)) == 0) {
+        printf("["KYEL"WARN"RESET"] The theme %s does not specify `maxpostsperpage`, so the default value of 3 is being used instead.\n", theme);
+        maxPostsPerPage = 3;
+    }
     
-    /* clear all posts */
-    pl_clean(pl);
+    currFrag = pfl->head;
+    i = 1;
+    pagenum = 0;
+    currpage = NULL;
+    while (currFrag != NULL) {
+        /* loop through all the posts */
+        
+        /* concatenate this fragment to the current string */
+        if (currpage == NULL) {
+            currpage = strdup(currFrag->frag);
+        } else {
+            temp = strutil_append_no_mutate(currpage, currFrag->frag);
+            freeThenNull(currpage);
+            currpage = temp;
+        }
+        
+        /* if this is the last post on the page (postsThisPage = maxPostsPerPage)
+           OR if the next page fragment == NULL
+           then dump the current string to the page `n` */
+        if (i == maxPostsPerPage || currFrag->next == NULL) {
+            /* get page output */
+            temp = dirJoin(nuDir, "page");
+            sprintf(pagenum_buf, "%d.html", pagenum);
+            temp2 = dirJoin(temp, pagenum_buf);
+            freeThenNull(temp);
+            printf("["KBLU"INFO"RESET"] Building page %d to %s...\n", pagenum, temp2);
+            
+            /* temp post dic */
+            temp_dic = td_new();
+            td_put_val(temp_dic, "pagination.currpage", currpage);
+            currpost_dic = td_merge(combined_dic, temp_dic);
+            
+            /* double pass */
+            temp = parse_template(index_template, currpost_dic);
+            templated_output = parse_template(temp, currpost_dic);
+            freeThenNull(temp);
+            
+            ok = writeFile(temp2, templated_output) + 1;
+            if (!ok) {
+                td_clean(temp_dic);
+                goto end;
+            }
+            td_clean(temp_dic);
+            if (pagenum == 0) {
+                /* also write the index.html */
+                temp = dirJoin(nuDir, "index.html");
+                ok = writeFile(temp, templated_output) + 1;
+                if (!ok) {
+                    goto end;
+                }
+                freeThenNull(temp);
+            }
+            
+            i = 1;
+            pagenum++;
+            freeThenNull(currpage);
+            freeThenNull(currpost_dic);
+            freeThenNull(templated_output);
+        } else {
+            i++;
+        }
+        currFrag = currFrag->next;
+    }
     
     end:
-    /* need to check if these are null otherwise C will think we've
-        done a double free */
+    if (pl) pl_clean(pl);
+    if (pfl) pfl_clean(pfl);
     free(buildingDir);
     free(configContents);
     free(cfgfname);
     free(temp);
+    free(temp2);
     free(themedir);
+    free(currpage);
     free(theme_dic);
     free(global_dic);
     free(templated_output);
+    free(normal_template);
+    free(special_template);
+    free(index_template);
+    free(singlepost_template);
     return !ok;
 }

@@ -72,6 +72,10 @@ char *parse_template(const char *in, const template_dictionary *dictionary) {
     done:
     /* check if there are any more non-variable characters to copy over */
     if (*(lastEnding+1) != '\0') {
+        if (output == NULL) {
+            /* aka no variables */
+            return strdup(lastEnding);
+        }
         newOutput = strutil_append_no_mutate(output, lastEnding);
         free(output);
         output = newOutput;

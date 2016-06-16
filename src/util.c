@@ -97,8 +97,6 @@ int delDir(const char *dirName) {
             perror("");
             free(toDel);
             return 1;
-        } else {
-            printf("["KBLU"INFO"RESET"] Removed file %s!\n", toDel);
         }
         free(toDel);
     }
