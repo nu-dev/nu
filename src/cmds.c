@@ -135,8 +135,10 @@ static char *normal_template;
 static char *special_template;
 static char *index_template;
 static char *singlepost_template;
+static char *navbar_template;
 static post_list *pl = NULL;
 static post_frag_list *pfl = NULL;
+static post_frag_list *sfl = NULL;
 static template_dictionary *combined_dic;
 
 int builderHelper(char *inFile) {
@@ -153,7 +155,7 @@ int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
          *temp2 = NULL, *currpage = NULL, *lastPage = NULL, *nextPage = NULL,
-         *currPageOut = NULL;
+         *currPageOut = NULL, *navbarText = NULL;
     const char *theme, *maxperpage;
     char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
@@ -167,6 +169,7 @@ int buildNuDir(char *nuDir) {
     globNuDir = nuDir;
     pl = pl_new();
     pfl = pfl_new();
+    sfl = pfl_new();
     
     printf("["KBLU"INFO"RESET"] Starting to build the directory `%s`!\n", nuDir);
     
@@ -235,10 +238,21 @@ int buildNuDir(char *nuDir) {
     freeThenNull(temp);
     
     /* read the single post fragment for the theme */
-    printf("["KBLU"INFO"RESET"] Reading index page template...\n");
+    printf("["KBLU"INFO"RESET"] Reading single post fragment...\n");
     temp = dirJoin(themedir, "singlepost.fragment");
     singlepost_template = dumpFile(temp);
     if (singlepost_template == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
+        ok = 0;
+        goto end;
+    }
+    freeThenNull(temp);
+    
+    /* read the special post fragment for the theme */
+    printf("["KBLU"INFO"RESET"] Reading navbar fragment...\n");
+    temp = dirJoin(themedir, "navbar.fragment");
+    navbar_template = dumpFile(temp);
+    if (navbar_template == NULL) {
         fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
         ok = 0;
         goto end;
@@ -279,9 +293,51 @@ int buildNuDir(char *nuDir) {
     }
     
     pl_sort(pl);
+    
     currPost = pl->head;
+    /* get list of special pages */
+    while (currPost != NULL) {
+        if ((currPost->me)->is_special) {
+            temp_dic = td_new();
+            td_put_val(temp_dic, "post.name", (currPost->me)->name);
+            td_put_val(temp_dic, "post.contents", (currPost->me)->contents);
+            td_put_val(temp_dic, "post.mdate", (currPost->me)->mdate);
+            td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
+            td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
+            td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
+            currpost_dic = td_merge(combined_dic, temp_dic);
+            
+            temp = calcPermalink((currPost->me)->out_loc);
+            td_put_val(currpost_dic, "post.link", temp);
+            freeThenNull(temp);
+            
+            /* double pass */
+            temp = parse_template(navbar_template, currpost_dic);
+            temp2 = parse_template(temp, currpost_dic);
+            freeThenNull(temp);
+            
+            /* add post fragment */
+            pfl_add(sfl, temp2);
+            freeThenNull(temp2);
+        }
+        currPost = currPost->next;
+    }
+    /* generate the navbar into the key `special.navbar` */
+    currFrag = sfl->head;
+    while (currFrag != NULL) {
+        if (navbarText == NULL) {
+            navbarText = strdup(currFrag->frag);
+        } else {
+            temp = strutil_append_no_mutate(navbarText, currFrag->frag);
+            freeThenNull(navbarText);
+            navbarText = temp;
+        }
+        currFrag = currFrag->next;
+    }
+    td_put_val(combined_dic, "special.navbar", navbarText);
     
     /* loop through the entire list */
+    currPost = pl->head;
     while (currPost != NULL) {
         if ((currPost->me)->delta_time <= 0) { /* skip this post if output file hasn't changed */
             goto nextpost;
@@ -300,12 +356,26 @@ int buildNuDir(char *nuDir) {
         
         if ((currPost->me)->is_special) {
             templated_output = parse_template(special_template, currpost_dic);
+            
+            temp = calcPermalink((currPost->me)->out_loc);
+            td_put_val(currpost_dic, "post.link", temp);
+            freeThenNull(temp);
+            
+            /* double pass */
+            temp = parse_template(navbar_template, currpost_dic);
+            temp2 = parse_template(temp, currpost_dic);
+            freeThenNull(temp);
+            
+            /* add post fragment */
+            pfl_add(sfl, temp2);
+            freeThenNull(temp2);
         } else {
             templated_output = parse_template(normal_template, currpost_dic);
 
             temp = calcPermalink((currPost->me)->out_loc);
             td_put_val(currpost_dic, "post.link", temp);
             freeThenNull(temp);
+            
             /* double pass */
             temp = parse_template(singlepost_template, currpost_dic);
             temp2 = parse_template(temp, currpost_dic);
@@ -339,7 +409,7 @@ int buildNuDir(char *nuDir) {
     /* check if theme config max posts per page */
     maxperpage = td_fetch_val(theme_dic, "theme.maxpostsperpage");
     if (maxperpage == NULL || (maxPostsPerPage = atoi(maxperpage)) == 0) {
-        printf("["KYEL"WARN"RESET"] The theme %s does not specify `maxpostsperpage`, so the default value of 3 is being used instead.\n", theme);
+        printf("["KYEL"WARN"RESET"] The theme `%s` does not specify `maxpostsperpage`, so the default value of 3 is being used instead.\n", theme);
         maxPostsPerPage = 3;
     }
     
@@ -453,6 +523,7 @@ int buildNuDir(char *nuDir) {
     end:
     if (pl) pl_clean(pl);
     if (pfl) pfl_clean(pfl);
+    if (sfl) pfl_clean(sfl);
     free(buildingDir);
     free(configContents);
     free(cfgfname);
@@ -461,6 +532,7 @@ int buildNuDir(char *nuDir) {
     free(themedir);
     free(currpage);
     free(lastPage);
+    free(navbarText);
     free(nextPage);
     free(currPageOut);
     free(theme_dic);
@@ -470,5 +542,6 @@ int buildNuDir(char *nuDir) {
     free(special_template);
     free(index_template);
     free(singlepost_template);
+    free(navbar_template);
     return !ok;
 }

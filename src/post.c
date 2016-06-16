@@ -64,7 +64,7 @@ post *post_create(const char *in_fpath) {
         
         /* creation date */
         if (strptime(timestamp, "%Y-%m-%d", &createTime) != NULL) {
-            strftime(to->cdate, 50, "%B %d, %Y", &createTime);
+            strftime(to->cdate, 50, "%b %d, %Y", &createTime);
         } else {
             fprintf(stderr, "["KRED"ERR"RESET"] Error while parsing time. This should not happen!!\n");
             return NULL;
