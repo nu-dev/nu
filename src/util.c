@@ -181,6 +181,25 @@ char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial) {
     }
 }
 
+void makeFnSafe(char *in) {
+    char *fn;
+    fn = strrchr(in, '/') + 1;
+    while (*fn != '\0') {
+        switch(*fn) {
+            case '#':
+            case ' ':
+            case '/':
+            case '!':
+            case '\'':
+            case '"':
+            case '\\':
+            *fn = '-';
+            break;
+        }
+        fn++;
+    }
+}
+
 char *dumpFile(const char *filename) {
     /* http://stackoverflow.com/questions/174531/easiest-way-to-get-files-contents-in-c */
     char *buffer = 0;

@@ -51,7 +51,7 @@ char *parse_template(const char *in, const template_dictionary *dictionary) {
         /* reference from the dictionary */
         tokenValue = td_fetch_val(dictionary, tokenKey);
         if (tokenValue == NULL) {
-            tokenValue = tokenKey;
+            tokenValue = "";
         }
         
         /* append that value in the result */

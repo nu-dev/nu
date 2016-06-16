@@ -70,24 +70,36 @@ int cleanNuDir(char *nuDir) {
     char *removingDir;
     int hasErr;
     
-    removingDir = dirJoin(nuDir, "posts");
     hasErr = 0;
     
+    removingDir = dirJoin(nuDir, "posts");
     printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
     if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
+        goto end;
     }
-    free(removingDir);
+    freeThenNull(removingDir);
     
     removingDir = dirJoin(nuDir, "special");
-    
     printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
-    if (!hasErr && delDir(removingDir) != 0) {
+    if (delDir(removingDir) != 0) {
         fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
         hasErr = 1;
+        goto end;
     }
+    freeThenNull(removingDir);
     
+    removingDir = dirJoin(nuDir, "page");
+    printf("["KBLU"INFO"RESET"] Deleting directory %s!\n", removingDir);
+    if (delDir(removingDir) != 0) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear directory %s! Check if you have permissions to delete.\n", removingDir);
+        hasErr = 1;
+        goto end;
+    }
+    freeThenNull(removingDir);
+    
+end:
     free(removingDir);
     return hasErr;
 }
@@ -286,7 +298,13 @@ int buildNuDir(char *nuDir) {
     }
     
     /* create all the pages */
-    
+    /* check if theme config max posts per page 
+    temp = td_fetch_val(global_dic, "theme");
+    if (theme == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `theme` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
+        ok = 0;
+        goto end;
+    }*/
     
     /* clear all posts */
     pl_clean(pl);

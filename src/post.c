@@ -36,6 +36,7 @@ post *post_create(const char *in_fpath) {
 	
 	/* out_loc and is_special */
     to->out_loc = getOutputFileName(to->in_fn, globNuDir, &(to->is_special));
+    makeFnSafe(to->out_loc);
     
     /* delta_time */
 	if (stat(to->out_loc, &outattr) != 0) {
@@ -46,16 +47,6 @@ post *post_create(const char *in_fpath) {
 	}
 	
 	to->contents = parseMD(in_fpath);
-	/* parsed contents - only parse if difftime > 0. otherwise,  
-    if (to->delta_time >= 0) {
-        to->contents = parseMD(in_fpath);
-        if (to->contents == NULL) {
-            error while parsing
-            return NULL;
-        }
-    } else {
-        to->contents = NULL;
-    }*/
 	
 	/* post name and creation time */
     temp = to->in_fn;
@@ -63,7 +54,7 @@ post *post_create(const char *in_fpath) {
     if (to->is_special) {
         /* no creation date */
         /* post name is just whatever minus the HTML */
-        to->name = strndup(temp, strlen(temp) - 3); /* ".html" = 5 chars */
+        to->name = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
     } else {
         /* timestamp is temp and 10 chars past */
         timestamp = strndup(temp, 10);
@@ -81,7 +72,7 @@ post *post_create(const char *in_fpath) {
         free(timestamp);
         
         /* post name is temp minus the html */
-        to->name = strndup(temp, strlen(temp) - 3); /* ".html" = 5 chars */
+        to->name = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
     }
     
     return to;

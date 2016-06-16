@@ -9,11 +9,10 @@ poststyle = "<link href='../../../../theme/basic/style.css' rel='stylesheet' typ
 closehead = "</head>"
 openbody = "<body>"
 openheader = <<<END
-    <div class="header"><h1 class="header-title">
-END
-closeheader = "</h1></div>"
+    <div class="header">END
+closeheader = "</div>"
 nav = <<<END
-<div class="navbar"></div>
+<div class="navbar"><ul class="nav"><li class="nav-li"><a class="nav-itm" href="/fs-layout/special/about.html">About</a></li></ul></div>
 END
 opencontent = <<<END
 <div class="content">
@@ -21,7 +20,6 @@ END
 closecontent = "</div>"
 closebody = <<<END
 <div class="footer">
-<hr />
 Site built using nu and the basic theme.
 </div>
 </body>

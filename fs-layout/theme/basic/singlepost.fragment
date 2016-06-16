@@ -1,0 +1,5 @@
+<h1>{{ post.name }}</h1>
+Created: {{ post.cdate }}<br />
+Last modified: {{ post.mdate }} at {{ post.mtime }}<br />
+{{ post.contents }}
+<hr />
