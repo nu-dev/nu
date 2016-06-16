@@ -1,0 +1,6 @@
+{{ theme.opencontent }}
+<h1 class="postname"><a href="{{linkprefix}}/{{ post.link }}" class="postlink">{{ post.name }}</a></h1>
+<div class="postinfo">Created: {{ post.cdate }}<br />
+Last modified: {{ post.mdate }} at {{ post.mtime }}<br /></div>
+{{ post.contents }}
+{{ theme.closecontent }}

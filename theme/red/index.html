@@ -1,0 +1,20 @@
+{{ theme.openhead }}
+{{ theme.style }}
+<title>{{ sitename }}</title>
+{{ theme.closehead }}
+{{ theme.openbody }}
+{{ theme.openheader }}
+<h1 class="header-title"><a href="{{linkprefix}}/" class="unstyled">{{ sitename }}</a></h1>
+<p class="tagline">{{ sitedesc }}</p>{{ theme.closeheader }}
+{{ theme.nav }}
+{{ pagination.currpage }}
+{{ theme.opencontent }}
+<table class="footer-nav">
+    <tr class="footer-nav">
+        <td class="footer-nav-itm">{{ pagination.older_link }}</td>
+        <td class="footer-nav-itm footer-nav-itm-center">Page {{pagination.currpagenum}}</td>
+        <td class="footer-nav-itm footer-nav-itm-right">{{ pagination.newer_link }}</td>
+    </tr>
+</table>
+{{ theme.closecontent }}
+{{ theme.closebody }}
