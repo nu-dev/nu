@@ -2,6 +2,6 @@ language: c
 compiler:
   - clang
   - gcc
-script: ./build-deps.sh && make
+script: ./build-deps.sh && make && git clone https://github.com/nu-dev/nu -b test test && ./nu build test
 notifications:
   email: false
