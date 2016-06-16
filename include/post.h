@@ -32,4 +32,5 @@ post *post_create(const char *in_fpath);
 void post_free(post *in);
 void pl_clean(post_list *in);
 post_list *pl_new();
+void pl_sort(post_list *in);
 #endif

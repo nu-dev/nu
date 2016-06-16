@@ -152,9 +152,10 @@ int builderHelper(char *inFile) {
 int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
-         *temp2 = NULL, *currpage = NULL;/*, *lastPage = NULL, *nextPage = NULL;*/
+         *temp2 = NULL, *currpage = NULL, *lastPage = NULL, *nextPage = NULL,
+         *currPageOut = NULL;
     const char *theme, *maxperpage;
-    char pagenum_buf[15];/*, pagenum_buf2[15];*/
+    char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
     unsigned int pagenum, i, maxPostsPerPage;
     template_dictionary *global_dic = NULL, *theme_dic = NULL,
@@ -277,6 +278,7 @@ int buildNuDir(char *nuDir) {
         goto end;
     }
     
+    pl_sort(pl);
     currPost = pl->head;
     
     /* loop through the entire list */
@@ -343,7 +345,7 @@ int buildNuDir(char *nuDir) {
     
     currFrag = pfl->head;
     i = 1;
-    pagenum = 0;
+    pagenum = 1;
     currpage = NULL;
     while (currFrag != NULL) {
         /* loop through all the posts */
@@ -364,28 +366,70 @@ int buildNuDir(char *nuDir) {
             /* get page output */
             temp = dirJoin(nuDir, "page");
             sprintf(pagenum_buf, "%d.html", pagenum);
-            temp2 = dirJoin(temp, pagenum_buf);
+            currPageOut = dirJoin(temp, pagenum_buf);
             freeThenNull(temp);
-            printf("["KBLU"INFO"RESET"] Building page %d to %s...\n", pagenum, temp2);
+            printf("["KBLU"INFO"RESET"] Building page %d to %s...\n", pagenum, currPageOut);
+            
+            /* get currpagenum as string */
+            sprintf(currpagenum_buf, "%d", pagenum);
             
             /* temp post dic */
             temp_dic = td_new();
             td_put_val(temp_dic, "pagination.currpage", currpage);
+            td_put_val(temp_dic, "pagination.currpagenum", currpagenum_buf);
+            
+            /* merge the dics */
             currpost_dic = td_merge(combined_dic, temp_dic);
+            
+            /* get last page link */
+            if (lastPage == NULL) { /* last page was null (aka this is first page) */
+                
+            } else {
+                /* not first page */
+                #define PAGINATION_NEWER_LINK "_pagination.olderLink"
+                temp = calcPermalink(lastPage);
+                td_put_val(currpost_dic, PAGINATION_NEWER_LINK, temp);
+                freeThenNull(temp);
+                temp2 = parse_template("<a class=\"{{theme.newerlinkclass}}\" href=\"{{linkprefix}}/{{"PAGINATION_NEWER_LINK"}}\">{{theme.newerlinktext}}</a>", currpost_dic);
+                td_remove_val(currpost_dic, PAGINATION_NEWER_LINK);
+                td_put_val(currpost_dic, "pagination.newer_link", temp2);
+                freeThenNull(temp2);
+                freeThenNull(lastPage);
+                #undef PAGINATION_NEWER_LINK
+            }
+            lastPage = strdup(currPageOut);
+            
+            /* get next page link */
+            /* calculate if this is last page */
+            if (currFrag->next == NULL) {
+                
+            } else {
+                /* not last page */
+                sprintf(pagenum_buf2, "/page/%d.html", pagenum+1); /* plus 1 for next */
+                #define PAGINATION_OLDER_LINK "_pagination.newerLink"
+                td_put_val(currpost_dic, PAGINATION_OLDER_LINK, pagenum_buf2);
+                temp2 = parse_template("<a class=\"{{theme.olderlinkclass}}\" href=\"{{linkprefix}}{{"PAGINATION_OLDER_LINK"}}\">{{theme.olderlinktext}}</a>", currpost_dic);
+                td_remove_val(currpost_dic, PAGINATION_OLDER_LINK);
+                td_put_val(currpost_dic, "pagination.older_link", temp2);
+                freeThenNull(temp2);
+                #undef PAGINATION_OLDER_LINK
+            }
             
             /* double pass */
             temp = parse_template(index_template, currpost_dic);
             templated_output = parse_template(temp, currpost_dic);
             freeThenNull(temp);
             
-            ok = writeFile(temp2, templated_output) + 1;
+            /* write the /page/<pagenum> */
+            ok = writeFile(currPageOut, templated_output) + 1;
             if (!ok) {
                 td_clean(temp_dic);
                 goto end;
             }
             td_clean(temp_dic);
-            if (pagenum == 0) {
-                /* also write the index.html */
+            
+            /* also write the index.html if this is the first page */
+            if (pagenum == 1) {
                 temp = dirJoin(nuDir, "index.html");
                 ok = writeFile(temp, templated_output) + 1;
                 if (!ok) {
@@ -399,6 +443,7 @@ int buildNuDir(char *nuDir) {
             freeThenNull(currpage);
             freeThenNull(currpost_dic);
             freeThenNull(templated_output);
+            freeThenNull(currPageOut);
         } else {
             i++;
         }
@@ -415,6 +460,9 @@ int buildNuDir(char *nuDir) {
     free(temp2);
     free(themedir);
     free(currpage);
+    free(lastPage);
+    free(nextPage);
+    free(currPageOut);
     free(theme_dic);
     free(global_dic);
     free(templated_output);

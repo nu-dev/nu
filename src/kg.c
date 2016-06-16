@@ -10,6 +10,11 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         if (start == NULL) goto done;
         
         /* everything from the last char to this equal sign is the left side - unless it's '#' */
+        if (*last == '\n' || *last == ' ') {
+            while (*last == '\n' || *last == ' ') {
+                last++;
+            }
+        }
         if (*last == '#') {
             last = strutil_next_token(last, "\n");
             if (last == NULL) goto done;
@@ -55,11 +60,6 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             /* from the previously saved location to the " is the value */
             currvalue = strndup(currvalue, temp - currvalue);
             
-            /* save it in the dictionary */
-            td_put_val(dictionary, currkey, currvalue);
-            free(currkey);
-            free(currvalue);
-            
             /* save the location to the ending */
             ending = temp+2;
         } else if (*temp == '<') { /* else (aka it's a <) */
@@ -96,15 +96,16 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
             currvalue = strndup(currvalue, temp - currvalue);
             free(lookupStr);
             
-            /* save that to the template dictionary */
-            td_put_val(dictionary, currkey, currvalue);
-            free(currkey);
-            free(currvalue);
-            
             /* ending is set to 4 characters past the end (include newline) */
             ending = temp + 4;
             
         }
+        
+        /* save it in the dictionary */
+        td_put_val(dictionary, currkey, currvalue);
+        free(currkey);
+        free(currvalue);
+        
         /* jump to the ending */
         last = ending;
         if (last == NULL || *last == '\0')  goto done;
