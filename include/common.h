@@ -43,6 +43,7 @@
     #endif
 #endif
 #define freeThenNull(x) do {free(x); x=NULL;} while(0);
+#define _okhere() do { printf("ok %d\n", __LINE__); fflush(stdout); } while(0)
 #define NU_CONFIG_NAME "config.kg"
 #define NU_CONFIG_NAME_LENGTH 9
 

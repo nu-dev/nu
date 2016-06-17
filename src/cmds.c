@@ -103,9 +103,7 @@ int cleanNuDir(char *nuDir) {
     removingDir = dirJoin(nuDir, "index.html");
     printf("["KBLU"INFO"RESET"] Deleting file %s...\n", removingDir);
     if (remove(removingDir) != 0) {
-        fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear file %s! Check if you have permissions to delete.\n", removingDir);
-        hasErr = 1;
-        goto end;
+        fprintf(stderr, "["KYEL"WARN"RESET"] Failed to clear file %s! It may already not exist. If it does, check if you have permissions to delete.\n", removingDir);
     }
     freeThenNull(removingDir);
 end:
@@ -301,7 +299,7 @@ int buildNuDir(char *nuDir) {
         goto end;
     }
     
-    pl_sort(pl);
+    pl_sort(&pl);
     
     currPost = pl->head;
     /* get list of special pages */
@@ -348,10 +346,6 @@ int buildNuDir(char *nuDir) {
     /* loop through the entire list */
     currPost = pl->head;
     while (currPost != NULL) {
-        if ((currPost->me)->delta_time <= 0) { /* skip this post if output file hasn't changed */
-            goto nextpost;
-        }
-        printf("["KBLU"INFO"RESET"] Building file %s to %s...\n", (currPost->me)->in_fn, (currPost->me)->out_loc);
         /* populate the dictionary */
         temp_dic = td_new();
         td_put_val(temp_dic, "post.name", (currPost->me)->name);
@@ -395,6 +389,11 @@ int buildNuDir(char *nuDir) {
             freeThenNull(temp2);
         }
         
+        if ((currPost->me)->delta_time <= 0) { /* skip this post if output file hasn't changed */
+            goto nextpost;
+        }
+        printf("["KBLU"INFO"RESET"] Building file %s to %s...\n", (currPost->me)->in_fn, (currPost->me)->out_loc);
+        
         /* double pass */
         temp = templated_output;
         templated_output = parse_template(temp, currpost_dic);
@@ -426,6 +425,7 @@ int buildNuDir(char *nuDir) {
     i = 1;
     pagenum = 1;
     currpage = NULL;
+    
     while (currFrag != NULL) {
         /* loop through all the posts */
         
@@ -530,6 +530,7 @@ int buildNuDir(char *nuDir) {
     }
     
     end:
+    fflush(stdout);
     if (pl) pl_clean(pl);
     if (pfl) pfl_clean(pfl);
     if (sfl) pfl_clean(sfl);

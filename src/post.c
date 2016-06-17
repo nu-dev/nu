@@ -112,74 +112,17 @@ post_list *pl_new() {
     return toCreate;
 }
 
-post_list_elem* pl_merge_sort(post_list_elem *list, int (*compare)(post_list_elem *one, post_list_elem *two)) {
-    post_list_elem *right,
-               *temp,
-               *last,
-               *result,
-               *next,
-               *tail;
-    /* Trivial case. */
-    if (!list || !list->next)
-        return list;
 
-    right = list;
-    temp = list;
-    last = list;
-    result = 0;
-    next = 0;
-    tail = 0;
-    
-    /* Find halfway through the list (by running two pointers, one at twice the speed of the other). */
-    while (temp && temp->next) {
-        last = right;
-        right = right->next;
-        temp = temp->next->next;
-    }
-
-    last->next = 0;
-
-    /* Recurse on the two smaller lists: */
-    list = pl_merge_sort(list, compare);
-    right = pl_merge_sort(right, compare);
-
-    /* Merge: */
-    while (list || right) {
-        /* Take from empty lists, or compare: */
-        if (!right) {
-            next = list;
-            list = list->next;
-        } else if (!list) {
-            next = right;
-            right = right->next;
-        } else if (compare(list, right) < 0) {
-            next = list;
-            list = list->next;
-        } else {
-            next = right;
-            right = right->next;
-        }
-        if (!result) {
-            result=next;
-        } else {
-            tail->next=next;
-        }
-        next->me = tail->me;
-        tail = next;
-    }
-    return result;
-}
-
-int _pl_cmp(post_list_elem *one, post_list_elem *two) {
+int _pl_cmp(const void *one, const void *two) {
     /* returns number > 0 if one is earlier than two */
-    char *one_name = (one->me)->name;
-    char *two_name = (two->me)->name;
+    char *one_name = (((const post_list_elem *)one)->me)->in_fn;
+    char *two_name = (((const post_list_elem *)two)->me)->in_fn;
     
     while (*one_name != '\0') {
         if (*one_name > *two_name) {
-            return 1;
-        } else if (*two_name > *one_name) {
             return -1;
+        } else if (*two_name > *one_name) {
+            return 1;
         }
         /* they are equal, so keep going */
         one_name++;
@@ -188,21 +131,88 @@ int _pl_cmp(post_list_elem *one, post_list_elem *two) {
     
     if (*two_name != '\0') {
         /* two_name is longer than one_name */
-        return -1;
-    }
-    
-    if (*one_name == *two_name) { /* both are null */
-        fprintf(stderr, "["KRED"ERR"RESET"] Two posts have the same name.");
-        exit(9001);
+        return 1;
     }
     
     return 0;
 }
 
-void pl_sort(post_list *in) {
-    /*post_list_elem *tmp = in->head;
-    tmp = pl_merge_sort(tmp, &_pl_cmp);*/
+post_list_elem *_pl_make_array(post_list *in) {
+    post_list_elem *arr, *tmp, *curr, *tmpref;
+    
+    arr = malloc(sizeof(post_list_elem) * (in->length));
+    curr = in->head;
+    tmp = arr;
+    
+    while (curr != NULL) {
+        tmp->me = curr->me;
+        tmpref = curr->next;
+        free(curr);
+        curr = tmpref;
+        tmp++;
+    }
+    
+    return arr;
 }
+
+post_list *_pl_from_array(post_list_elem *in, unsigned int length) {
+    post_list_elem *created, *curr;
+    post_list *lst;
+    unsigned int i;
+    
+    lst = pl_new();
+    curr = lst->head;
+    
+    for (i = 0; i < length; i++) {
+        created = malloc(sizeof(post_list_elem));
+        created->me = in[i].me;
+        
+        if (curr == NULL) {
+            lst->head = created;
+        } else {
+            curr->next = created;
+        }
+        curr = created;
+    }
+    
+    lst->tail = created;
+    lst->length = length;
+    created->next = NULL;
+    
+    free(in);
+    return lst;
+}
+/*
+void _pl_dump(post_list *in) {
+    post_list_elem *curr;
+    
+    curr = in->head;
+    
+    while (curr != NULL) {
+        printf("postlist %s\n", (curr->me)->in_fn);
+        curr = curr->next;
+    }
+}
+
+void _pa_dump(post_list_elem *in, unsigned int length) {
+    unsigned int i;
+    
+    for (i = 0; i < length; i++) {
+        printf("%d postarr %s\n", __LINE__, (in[i].me)->in_fn);
+    }
+}*/
+
+void pl_sort(post_list **in) {
+    post_list_elem *arr;
+    
+    arr = _pl_make_array(*in);
+
+    qsort((void*)arr, (*in)->length, sizeof(post_list_elem), _pl_cmp);
+
+    free(*in);
+    *in = _pl_from_array(arr, (*in)->length);
+}
+
 /*
 int main() {
     post *test;
