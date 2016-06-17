@@ -6,7 +6,8 @@ static const char *defaultConfig_contents =
 "# nu default config\n"
 "# for help, please visit https://github.com/nu-dev/nu/wiki/Getting-Started\n"
 "theme = \"basic\"\n"
-"ignore_newer_post = \"1\"\n";
+"sitename = \"My new blog\"\n"
+"sitedesc = \"My new blog!\"\n";
 
 int newSrv(char *name) {
     #define DIRSTOMAKECOUNT 6
@@ -99,6 +100,14 @@ int cleanNuDir(char *nuDir) {
     }
     freeThenNull(removingDir);
     
+    removingDir = dirJoin(nuDir, "index.html");
+    printf("["KBLU"INFO"RESET"] Deleting file %s...\n", removingDir);
+    if (remove(removingDir) != 0) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Failed to clear file %s! Check if you have permissions to delete.\n", removingDir);
+        hasErr = 1;
+        goto end;
+    }
+    freeThenNull(removingDir);
 end:
     free(removingDir);
     return hasErr;
