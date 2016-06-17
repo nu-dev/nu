@@ -191,6 +191,7 @@ void makeFnSafe(char *in) {
             case '\'':
             case '"':
             case '\\':
+            case '?':
             *fn = '-';
             break;
         }
