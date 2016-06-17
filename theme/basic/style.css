@@ -1,0 +1,59 @@
+html {
+    min-height: 100%;
+}
+
+body {
+    background-color: #fff;
+    margin: 3em auto;
+    font-family: 'Georgia', serif;
+    min-height: 100%;
+    font-size: 1.1em;
+    max-width: 900px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
+    font-weight: normal;
+}
+
+a {
+    color: #1e73be;
+}
+
+a:hover {
+    color: #000;
+}
+
+.header {
+    display: inline-block;
+}
+
+.sitename {
+    text-decoration: none;
+}
+
+.nav-postlink {
+    color: #666;
+}
+
+.footer {
+    text-align: center;
+    bottom: 0;
+    width: 100%;
+    padding: 1em 0;
+}
+
+.content {
+    margin: 1em auto;
+    background-color: #fff;
+    border-radius: 2px;
+}
+
+h1 {
+    font-size: 2.5em;
+}
+
+.postinfo {
+    color: #666;
+}

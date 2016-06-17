@@ -1,6 +1,6 @@
 # nu default config
 # for help, please visit https://github.com/ohnx/nu/wiki
-theme = "red"
+theme = "basic"
 sitename = "nu test blog"
 sitedesc = "A simple blog that demonstrates how nu works."
 linkprefix = "/fs-layout"
