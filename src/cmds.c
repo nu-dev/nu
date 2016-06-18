@@ -119,17 +119,19 @@ char *getNuDir(int argc, char** argv) {
     
     if (argc == 2) { /* no other arguments passed, assume user means current directory is nudir */
         if (getCurrDir(buf, BUF_SIZE) != 0) return NULL;
+        
         nuDir = buf;
     } else if (argc == 3) { /* specified a directory to use as nudir */
         if (getCurrDir(buf, BUF_SIZE) != 0) return NULL;
         nuDir = dirJoin(buf, argv[2]);
         free(buf);
     } else {
-        fprintf(stderr, "["KRED"ERR"RESET"] Invalid number of arguments passed. For help, use `%s help clean`\n", *argv);
+        fprintf(stderr, "["KRED"ERR"RESET"] Invalid number of arguments passed. For help, use `%s help`.\n", *argv);
         free(buf);
         return NULL;
     }
     if (!isNuDir(nuDir)) goto notnudir;
+    fprintf(stderr, "["KBLU"INFO"RESET"] Using `%s` as the nu directory.\n", nuDir);
     return nuDir;
 notnudir:
     fprintf(stderr, "["KRED"ERR"RESET"] The specified directory %s is not a valid nu directory. Please check that the file `"NU_CONFIG_NAME"` exists and try again.\n", nuDir);
@@ -150,6 +152,7 @@ static template_dictionary *combined_dic;
 
 int builderHelper(char *inFile) {
     static post *temp;
+    
     temp = post_create(inFile);
     if (temp == NULL) {
         return -1;
@@ -277,6 +280,10 @@ int buildNuDir(char *nuDir) {
         goto end;
     }
     
+    if (pl->length == 0) {
+        printf("["KYEL"WARN"RESET"] There is nothing to build.\n");
+        return 0;
+    }
     pl_sort(&pl);
     
     /* read the navbar fragment for the theme */

@@ -205,6 +205,9 @@ void _pa_dump(post_list_elem *in, unsigned int length) {
 void pl_sort(post_list **in) {
     post_list_elem *arr;
     
+    /* convert the post list to an array, then quicksort it, then convert it
+     * back into a list
+     */
     arr = _pl_make_array(*in);
 
     qsort((void*)arr, (*in)->length, sizeof(post_list_elem), _pl_cmp);
