@@ -163,7 +163,7 @@ int buildNuDir(char *nuDir) {
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
          *temp2 = NULL, *currpage = NULL, *lastPage = NULL, *nextPage = NULL,
          *currPageOut = NULL, *navbarText = NULL;
-    const char *theme, *maxperpage;
+    const char *theme, *maxperpage, *temp0;
     char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
     unsigned int pagenum, i, maxPostsPerPage;
@@ -244,28 +244,6 @@ int buildNuDir(char *nuDir) {
     }
     freeThenNull(temp);
     
-    /* read the single post fragment for the theme */
-    printf("["KBLU"INFO"RESET"] Reading single post fragment...\n");
-    temp = dirJoin(themedir, "singlepost.fragment");
-    singlepost_template = dumpFile(temp);
-    if (singlepost_template == NULL) {
-        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
-        ok = 0;
-        goto end;
-    }
-    freeThenNull(temp);
-    
-    /* read the special post fragment for the theme */
-    printf("["KBLU"INFO"RESET"] Reading navbar fragment...\n");
-    temp = dirJoin(themedir, "navbar.fragment");
-    navbar_template = dumpFile(temp);
-    if (navbar_template == NULL) {
-        fprintf(stderr, "["KRED"ERR"RESET"] The theme file `%s` could not be found! Please make sure it is in the %s directory.\n", temp, themedir);
-        ok = 0;
-        goto end;
-    }
-    freeThenNull(temp);
-    
     /* read the post page for the theme */
     printf("["KBLU"INFO"RESET"] Reading post page template...\n");
     temp = dirJoin(themedir, "post.html");
@@ -300,6 +278,16 @@ int buildNuDir(char *nuDir) {
     }
     
     pl_sort(&pl);
+    
+    /* read the navbar fragment for the theme */
+    printf("["KBLU"INFO"RESET"] Reading navbar navbar_template...\n");
+    temp0 = td_fetch_val(combined_dic, "theme.navbar_template");
+    if (temp0 == NULL) {
+        fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `navbar_template` in the theme config. Assuming no navbar is needed.\n");
+        navbar_template = NULL;
+        goto done_nav;
+    }
+    navbar_template = strdup(temp0);
     
     currPost = pl->head;
     /* get list of special pages */
@@ -343,6 +331,19 @@ int buildNuDir(char *nuDir) {
     }
     td_put_val(combined_dic, "special.navbar", navbarText);
     
+    done_nav:
+    
+    /* read the singlepost fragment for the theme */
+    printf("["KBLU"INFO"RESET"] Reading singlepost_template fragment...\n");
+    temp0 = td_fetch_val(combined_dic, "theme.singlepost_template");
+    if (temp0 == NULL) {
+        fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `singlepost_template` in the theme config. Assuming no pages are needed.\n");
+        singlepost_template = NULL;
+    } else {
+        singlepost_template = strdup(temp0);
+    }
+    
+    
     /* loop through the entire list */
     currPost = pl->head;
     while (currPost != NULL) {
@@ -363,15 +364,6 @@ int buildNuDir(char *nuDir) {
             temp = calcPermalink((currPost->me)->out_loc);
             td_put_val(currpost_dic, "post.link", temp);
             freeThenNull(temp);
-            
-            /* double pass */
-            temp = parse_template(navbar_template, currpost_dic);
-            temp2 = parse_template(temp, currpost_dic);
-            freeThenNull(temp);
-            
-            /* add post fragment */
-            pfl_add(sfl, temp2);
-            freeThenNull(temp2);
         } else {
             templated_output = parse_template(normal_template, currpost_dic);
 
@@ -380,13 +372,15 @@ int buildNuDir(char *nuDir) {
             freeThenNull(temp);
             
             /* double pass */
-            temp = parse_template(singlepost_template, currpost_dic);
-            temp2 = parse_template(temp, currpost_dic);
-            freeThenNull(temp);
-            
-            /* add post fragment */
-            pfl_add(pfl, temp2);
-            freeThenNull(temp2);
+            if (singlepost_template) {
+                temp = parse_template(singlepost_template, currpost_dic);
+                temp2 = parse_template(temp, currpost_dic);
+                freeThenNull(temp);
+                
+                /* add post fragment */
+                pfl_add(pfl, temp2);
+                freeThenNull(temp2);
+            }
         }
         
         if ((currPost->me)->delta_time <= 0) { /* skip this post if output file hasn't changed */
@@ -411,6 +405,26 @@ int buildNuDir(char *nuDir) {
         
     nextpost:
         currPost = currPost->next;
+    }
+    
+    if (singlepost_template == NULL) {
+        /* no pagination needed */
+        /* double pass */
+        temp = parse_template(index_template, combined_dic);
+        templated_output = parse_template(temp, combined_dic);
+        freeThenNull(temp);
+        
+        temp = dirJoin(nuDir, "index.html");
+        
+        printf("["KBLU"INFO"RESET"] Writing index file to `index.html`...\n");
+        
+        /* write the index.html */
+        ok = writeFile(temp, templated_output) + 1;
+        if (!ok) {
+            goto end;
+        }
+        freeThenNull(temp);
+        goto done_pages;
     }
     
     /* create all the pages */
@@ -533,6 +547,7 @@ int buildNuDir(char *nuDir) {
         currFrag = currFrag->next;
     }
     
+    done_pages:
     end:
     fflush(stdout);
     if (pl) pl_clean(pl);
