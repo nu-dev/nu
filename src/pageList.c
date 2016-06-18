@@ -1,7 +1,5 @@
 #include "pageList.h"
 
-extern char *globNuDir;
-
 void pfl_add(post_frag_list *in, const char *frag) {
     post_frag_list_elem *toAdd = malloc(sizeof(post_frag_list_elem));
     toAdd->frag = strdup(frag);

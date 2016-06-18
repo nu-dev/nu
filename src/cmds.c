@@ -421,13 +421,17 @@ int buildNuDir(char *nuDir) {
         maxPostsPerPage = 3;
     }
     
+    /* calculate number of pages */
+    sprintf(currpagenum_buf, "%d", (pfl->length)/maxPostsPerPage + (((pfl->length)%maxPostsPerPage == 0)?0:1));
+    td_put_val(combined_dic, "pagination.totalpages", currpagenum_buf);
+    
     currFrag = pfl->head;
     i = 1;
     pagenum = 1;
     currpage = NULL;
     
     while (currFrag != NULL) {
-        /* loop through all the posts */
+        /* loop through all the post fragments */
         
         /* concatenate this fragment to the current string */
         if (currpage == NULL) {
