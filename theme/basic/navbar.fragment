@@ -1,1 +1,0 @@
-<a href="{{linkprefix}}/{{ post.link }}" class="nav-postlink">{{ post.name }}</a>&emsp;
