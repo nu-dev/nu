@@ -38,7 +38,7 @@ char *calcPermalink(const char *output_fl) {
     static int offset;
     
     if (offset == 0) offset = strlen(globNuDir);
-    return strdup(&output_fl[offset+1]);
+    return strdup(&output_fl[offset]);
 }
 
 post_frag_list *pfl_new() {

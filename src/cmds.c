@@ -496,8 +496,8 @@ int buildNuDir(char *nuDir) {
             if (lastPage == NULL) { /* last page was null (aka this is first page) */
                 
             } else {
-                /* not first page */
-                #define PAGINATION_NEWER_LINK "_pagination.olderLink"
+                /* not first page - there are newer pages*/
+                #define PAGINATION_NEWER_LINK "_pagination.newerLink"
                 temp = calcPermalink(lastPage);
                 td_put_val(currpost_dic, PAGINATION_NEWER_LINK, temp);
                 freeThenNull(temp);
@@ -515,9 +515,9 @@ int buildNuDir(char *nuDir) {
             if (currFrag->next == NULL) {
                 
             } else {
-                /* not last page */
+                /* not last page - there are older pages */
                 sprintf(pagenum_buf2, "/page/%d.html", pagenum+1); /* plus 1 for next */
-                #define PAGINATION_OLDER_LINK "_pagination.newerLink"
+                #define PAGINATION_OLDER_LINK "_pagination.olderLink"
                 td_put_val(currpost_dic, PAGINATION_OLDER_LINK, pagenum_buf2);
                 temp2 = parse_template("<a class=\"{{theme.olderlinkclass}}\" href=\"{{linkprefix}}{{"PAGINATION_OLDER_LINK"}}\">{{theme.olderlinktext}}</a>", currpost_dic);
                 td_remove_val(currpost_dic, PAGINATION_OLDER_LINK);
