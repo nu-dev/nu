@@ -14,7 +14,7 @@ int isNuDir(const char *dir);
 int delDir(const char *dirName);
 
 /* function pointer def */
-typedef int (*dirIterator)(char *dirName);
+typedef int (*dirIterator)(const char *inFile);
 
 int loopThroughDir(const char *dirName, dirIterator iter);
 const char *fileExtension(const char *in);

@@ -150,9 +150,16 @@ static post_frag_list *pfl = NULL;
 static post_frag_list *sfl = NULL;
 static template_dictionary *combined_dic;
 
-int builderHelper(char *inFile) {
+int builderHelper(const char *inFile) {
     static post *temp;
+    static const char *ext;
     
+    ext = fileExtension(inFile);
+    if (strcmp(ext, "md") != 0 && strcmp(ext, "markdown") != 0) {
+        printf("["KYEL"WARN"RESET"] Skipping file %s - file extension is not `md` or `markdown`.\n", inFile);
+        return 0;
+    }
+
     temp = post_create(inFile);
     if (temp == NULL) {
         return -1;
@@ -275,7 +282,7 @@ int buildNuDir(char *nuDir) {
     printf("["KBLU"INFO"RESET"] Creating list of posts...\n");
     /* loop through dir and do all the stuff*/
     if (loopThroughDir(buildingDir, &builderHelper) != 0) {
-        fprintf(stderr, "["KRED"ERR"RESET"] Failed to build! Check if you have permissions to create files in `%s/posts` or `%s/special` and try again.\n", nuDir, nuDir);
+        fprintf(stderr, "["KRED"ERR"RESET"] Failed to build! Check if you have permissions to read files in `%s/raw` and try again.\n", nuDir);
         ok = 0;
         goto end;
     }
