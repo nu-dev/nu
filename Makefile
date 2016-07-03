@@ -1,4 +1,3 @@
-CC=gcc
 CFLAGS=-g -I include/ -I hoedown/src/ -I libnucommon/ -Wall -pedantic -static -Werror
 LIBFLAGS= -Lhoedown/ -l:libhoedown.a -Llibnucommon -lnucommon
 OBJ=util.o pageList.o post.o unvo.o kg.o post.o nu.o cmds.o strlist.o
