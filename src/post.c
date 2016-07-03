@@ -112,7 +112,6 @@ post_list *pl_new() {
     return toCreate;
 }
 
-
 int _pl_cmp(const void *one, const void *two) {
     /* returns number > 0 if one is earlier than two */
     char *one_name = (((const post_list_elem *)one)->me)->in_fn;

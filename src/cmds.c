@@ -146,6 +146,7 @@ static char *index_template;
 static char *singlepost_template;
 static char *navbar_template;
 static post_list *pl = NULL;
+static str_list *sl = NULL;
 static post_frag_list *pfl = NULL;
 static post_frag_list *sfl = NULL;
 static template_dictionary *combined_dic;
@@ -185,6 +186,7 @@ int buildNuDir(char *nuDir) {
     buildingDir = dirJoin(nuDir, "raw");
     globNuDir = nuDir;
     pl = pl_new();
+    sl = sl_new();
     pfl = pfl_new();
     sfl = pfl_new();
     
@@ -293,8 +295,19 @@ int buildNuDir(char *nuDir) {
     }
     pl_sort(&pl);
     
+    currPost = pl->head;
+    while (currPost != NULL) {
+        if (sl_exists_inside(sl, (currPost->me)->out_loc)) {
+            fprintf(stderr, "["KRED"ERR"RESET"] There are two posts with the same output location to `%s`. Please see https://github.com/nu-dev/nu/wiki/Duplicate-output-posts for more help.\n", (currPost->me)->out_loc);
+            goto end;
+        } else {
+            sl_add_post(sl, (currPost->me)->out_loc);
+        }
+        currPost = currPost->next;
+    }
+    
     /* read the navbar fragment for the theme */
-    printf("["KBLU"INFO"RESET"] Reading navbar navbar_template...\n");
+    printf("["KBLU"INFO"RESET"] Reading navbar template from navbar_template fragment...\n");
     temp0 = td_fetch_val(combined_dic, "theme.navbar_template");
     if (temp0 == NULL) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `navbar_template` in the theme config. Assuming no navbar is needed.\n");
@@ -348,7 +361,7 @@ int buildNuDir(char *nuDir) {
     done_nav:
     
     /* read the singlepost fragment for the theme */
-    printf("["KBLU"INFO"RESET"] Reading singlepost_template fragment...\n");
+    printf("["KBLU"INFO"RESET"] Reading single post template from singlepost_template fragment...\n");
     temp0 = td_fetch_val(combined_dic, "theme.singlepost_template");
     if (temp0 == NULL) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `singlepost_template` in the theme config. Assuming no pages are needed.\n");
@@ -356,7 +369,6 @@ int buildNuDir(char *nuDir) {
     } else {
         singlepost_template = strdup(temp0);
     }
-    
     
     /* loop through the entire list */
     currPost = pl->head;
@@ -565,6 +577,7 @@ int buildNuDir(char *nuDir) {
     end:
     fflush(stdout);
     if (pl) pl_clean(pl);
+    if (sl) sl_clean(sl);
     if (pfl) pfl_clean(pfl);
     if (sfl) pfl_clean(sfl);
     free(buildingDir);

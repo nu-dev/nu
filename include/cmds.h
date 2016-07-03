@@ -7,6 +7,7 @@
 #include "dictionary.h"
 #include "post.h"
 #include "pageList.h"
+#include "strlist.h"
 
 int newSrv(char *name);
 int cleanNuDir(char *nuDir);

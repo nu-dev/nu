@@ -50,6 +50,7 @@ char *dirJoin(const char *a, const char *b) {
         /* then the new folder name */
         strcpy(&newString[lenA], b);
     }
+    /* do not need to set null since we `calloc` */
     return newString;
 }
 
@@ -62,7 +63,6 @@ int getCurrDir(char *location, int length) {
     }
     return 0;
 }
-
 
 int isNuDir(const char *dir) {
     FILE *fp;
