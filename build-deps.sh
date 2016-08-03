@@ -4,6 +4,7 @@
 git clone https://github.com/hoedown/hoedown.git
 cd hoedown
 make
+cp libhoedown.a ../
 cd ..
 
 # libnucommon
