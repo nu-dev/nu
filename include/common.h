@@ -47,7 +47,7 @@
 #define NU_CONFIG_NAME_LENGTH 9
 
 /* nu version */
-#define NU_VERSION      "2.0.0"
+#define NU_VERSION      "0.2.0b"
 #define BUF_SIZE 8192
 
 char *globNuDir;
