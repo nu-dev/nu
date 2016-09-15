@@ -60,6 +60,7 @@ typedef struct _post {
     char mtime[11]; /* time last modified */
     char *in_fn; /* input filename (filename ONLY, not extension) */
     char *out_loc; /* output location */
+    char *raw_link;
     double delta_time; /* delta time between input and output */
     int is_special; /* is this a special post */
 } post;

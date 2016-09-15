@@ -327,6 +327,7 @@ int buildNuDir(char *nuDir) {
             td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
             td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
             td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
+            td_put_val(temp_dic, "post.raw_link", (currPost->me)->raw_link);
             currpost_dic = td_merge(combined_dic, temp_dic);
             
             temp = calcPermalink((currPost->me)->out_loc);
@@ -382,6 +383,12 @@ int buildNuDir(char *nuDir) {
         td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
         td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
         td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
+        
+        temp = (currPost->me)->raw_link;
+        temp = dirJoin(td_fetch_val(combined_dic, "linkprefix"), temp);
+        td_put_val(temp_dic, "post.raw_link", temp);
+        free(temp);
+        
         currpost_dic = td_merge(combined_dic, temp_dic);
         
         if ((currPost->me)->is_special) {
@@ -425,11 +432,10 @@ int buildNuDir(char *nuDir) {
             goto end;
         }
         
+    nextpost:
         /* clean up */
         freeThenNull(currpost_dic);
         td_clean(temp_dic);
-        
-    nextpost:
         currPost = currPost->next;
     }
     

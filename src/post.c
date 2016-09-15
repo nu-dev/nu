@@ -53,6 +53,7 @@ post *post_create(const char *in_fpath) {
 	}
     
     temp = to->in_fn;
+    to->raw_link = strutil_append_no_mutate("raw/", temp);
     
     if (to->is_special) {
     } else {
