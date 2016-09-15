@@ -209,7 +209,7 @@ char *dumpFile(const char *filename) {
     
     if (f) {
         fseek(f, 0, SEEK_END);
-        length = ftell (f);
+        length = ftell(f);
         fseek(f, 0, SEEK_SET);
         buffer = malloc(length+1);
         if (buffer) {
@@ -251,28 +251,79 @@ retry:
     }
 }
 
-char *parseMD(const char *filename) {
-    FILE *in;
+/*
+this function is used to produce the post name
+and the post contents
+*/
+void parseFile(const char *filename, post *p) {
+    char *in, *markdownContents;
+    char *indexLocation, *temp;
+    template_dictionary *td_temp;
+    
+    /* input file */
+    if ((in = dumpFile(filename)) == NULL) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Failed to open input file %s: \n", filename);
+		perror("");
+		return;
+    }
+    
+    td_temp = td_new();
+	
+	/* check if header is present */
+	if (!strncmp(in, "----", 4)) {
+	    /* parse the values using kagyari, with the last "----" as the end */
+	    indexLocation = strutil_next_token(in+4, "----");
+	    if (indexLocation == NULL) {
+	        fprintf(stderr, "["KRED"ERR"RESET"] Failed to parse input file %s - there is no closing `----` for kagyari contents\n", filename);
+	        free(in);
+	        free(td_temp);
+	        return;
+	    }
+	    
+	    /* parse values */
+	    temp = strndup(in+4, indexLocation-(in+4));
+	    parse_config(temp, NULL, td_temp);
+	    free(temp);
+	    
+	    markdownContents = indexLocation+4;
+	} else {
+        markdownContents = in;
+	}
+	
+	markdownContents = parseMD(markdownContents, filename);
+	p->contents = markdownContents;
+	
+	temp = p->in_fn;
+	if (p->is_special) {
+        /* no creation date */
+        /* post name is just whatever minus the HTML */
+        temp = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
+    } else {
+        /* post name is temp minus the html */
+        temp += 11; /* skip past 2015-06-13- (11 chars) */
+        temp = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
+    }
+    
+    p->name = strdup(td_fetch_val_default(td_temp, "name", temp));
+    free(temp);
+    
+	td_clean(td_temp);
+	free(in);
+}
+
+char *parseMD(const char *in, const char *filename) {
     hoedown_buffer *ib, *ob;
 	hoedown_document *document;
 	hoedown_renderer *renderer;
 	char *ret = NULL;
 	unsigned int removeCount;
 	unsigned int extensions = HOEDOWN_EXT_NO_INTRA_EMPHASIS | HOEDOWN_HTML_HARD_WRAP | HOEDOWN_EXT_TABLES | HOEDOWN_EXT_UNDERLINE | HOEDOWN_EXT_HIGHLIGHT | HOEDOWN_EXT_SUPERSCRIPT | HOEDOWN_EXT_STRIKETHROUGH | HOEDOWN_EXT_FENCED_CODE | HOEDOWN_EXT_AUTOLINK;
-	
-    /* input file */
-	in = fopen(filename, "r");
-	if (in == NULL) {
-		fprintf(stderr, "["KRED"ERR"RESET"] Failed to open input file %s: \n", filename);
-		perror("");
-		return NULL;
-	}
-	
+
 	/* Use hoedown to parse Markdown
 	   If you don't understand this code, check out https://github.com/hoedown/hoedown/wiki/Getting-Started */
 	/* create the buffers */
 	ib = hoedown_buffer_new(16);
-	hoedown_buffer_putf(ib, in);
+	hoedown_buffer_puts(ib, in);
 	renderer = hoedown_html_renderer_new(0, 0);
 	
 	/* Perform Markdown rendering */
@@ -284,8 +335,6 @@ char *parseMD(const char *filename) {
 	hoedown_buffer_free(ib);
 	hoedown_document_free(document);
 	hoedown_html_renderer_free(renderer);
-	
-	fclose(in);
 	
 	removeCount = strutil_remove_unicode(ob->data, ob->size, &ret);
 	if (removeCount > 0) {

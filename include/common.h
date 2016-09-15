@@ -15,7 +15,6 @@
 
 /* custom headers */
 #include "libnucommon.h"
-#include "util.h"
 
 /* color codes */
 #ifndef _NU_COLORS
@@ -52,4 +51,16 @@
 #define BUF_SIZE 8192
 
 char *globNuDir;
+
+typedef struct _post {
+    char *name; /* post name */
+    char *contents; /* parsed contents of the post */
+    char cdate[50]; /* date created (based on input filename) */
+    char mdate[50]; /* date last modified */
+    char mtime[11]; /* time last modified */
+    char *in_fn; /* input filename (filename ONLY, not extension) */
+    char *out_loc; /* output location */
+    double delta_time; /* delta time between input and output */
+    int is_special; /* is this a special post */
+} post;
 #endif

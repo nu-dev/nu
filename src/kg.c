@@ -29,9 +29,11 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         currkey = temp;
         
         /* add prefix to it (prefix should already be including the ".") */
-        temp = strutil_append_no_mutate(prefix, currkey);
-        free(currkey);
-        currkey = temp;
+        if (prefix != NULL) {
+            temp = strutil_append_no_mutate(prefix, currkey);
+            free(currkey);
+            currkey = temp;
+        }
         
         temp = start;
         
@@ -108,7 +110,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         
         /* jump to the ending */
         last = ending;
-        if (last == NULL || *last == '\0')  goto done;
+        if (*last == '\0')  goto done;
     }
     done:
     return 1;

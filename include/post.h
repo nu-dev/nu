@@ -1,20 +1,10 @@
 #ifndef _POSTUTIL_INC
 #define _POSTUTIL_INC
 
-/* custom headers */
 #include "common.h"
+#include "util.h"
 
-typedef struct _post {
-    char *name; /* post name */
-    char *contents; /* parsed contents of the post */
-    char cdate[50]; /* date created (based on input filename) */
-    char mdate[50]; /* date last modified */
-    char mtime[11]; /* time last modified */
-    char *in_fn; /* input filename (filename ONLY, not extension) */
-    char *out_loc; /* output location */
-    double delta_time; /* delta time between input and output */
-    int is_special; /* is this a special post */
-} post;
+/* struct _post moved to common.h */
 
 typedef struct _post_list_elem {
     post *me;

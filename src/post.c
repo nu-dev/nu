@@ -20,8 +20,8 @@ post *post_create(const char *in_fpath) {
     const char *temp;
     char *timestamp;
     struct stat inattr, outattr;
-    time_t inTime, outTime;
-    struct tm *inTime_tm, createTime;
+    time_t inTime, outTime, tmpTime;
+    struct tm *inTime_tm, *createTime;
     post *to = malloc(sizeof(post));
     
     /* in_fn -- make sure to get the right part */
@@ -46,33 +46,29 @@ post *post_create(const char *in_fpath) {
         to->delta_time = difftime(inTime, outTime);
 	}
 	
-	to->contents = parseMD(in_fpath);
+	parseFile(in_fpath, to);
 	
-	/* post name and creation time */
+	if (to->contents == NULL) {
+	    return NULL;
+	}
+    
     temp = to->in_fn;
     
     if (to->is_special) {
-        /* no creation date */
-        /* post name is just whatever minus the HTML */
-        to->name = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
     } else {
         /* timestamp is temp and 10 chars past */
         timestamp = strndup(temp, 10);
         
-        /* post name need to remove the first bit */
-        temp += 11; /* skip past 2015-06-13- (11 chars) */
-        
         /* creation date */
-        if (strptime(timestamp, "%Y-%m-%d", &createTime) != NULL) {
-            strftime(to->cdate, 50, "%b %d, %Y", &createTime);
+        time(&tmpTime);
+        createTime = localtime(&tmpTime);
+        if (strptime(timestamp, "%Y-%m-%d", createTime) != NULL) {
+            strftime(to->cdate, 50, "%b %d, %Y", createTime);
         } else {
             fprintf(stderr, "["KRED"ERR"RESET"] Error while parsing time. This should not happen!!\n");
             return NULL;
         }
         free(timestamp);
-        
-        /* post name is temp minus the html */
-        to->name = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
     }
     
     return to;

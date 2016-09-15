@@ -5,15 +5,14 @@ OUTPUT=nu
 
 default: nu
 
+debug: CFLAGS += -g -O0
+debug: nu
+
 %.o: src/%.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) $(EXTRA)
 
 nu: $(OBJ)
 	$(CC) -o $(OUTPUT) $^ $(LIBFLAGS) $(CFLAGS)
-	-rm -f $(OBJ)
-
-debug: $(OBJ)
-	$(CC) -o $(OUTPUT) $^ $(LIBFLAGS) $(CFLAGS) -g
 	-rm -f $(OBJ)
 
 clean:

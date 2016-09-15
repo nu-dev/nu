@@ -3,6 +3,8 @@
 #include "common.h"
 #include "document.h"
 #include "html.h"
+#include "kg.h"
+#include "post.h"
 #include <string.h>
 #include <errno.h>
 
@@ -23,6 +25,7 @@ char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial);
 char *dumpFile(const char *filename);
 int writeFile(const char *filename, const char *toWrite);
 void makeFnSafe(char *in);
-char *parseMD(const char *filename);
+void parseFile(const char *filename, post *p);
+char *parseMD(const char *in, const char *filename);
 int createDirs(const char *filename);
 #endif
