@@ -5,7 +5,7 @@ OUTPUT=nu
 
 default: nu
 
-debug: CFLAGS += -g -O0
+debug: CFLAGS += -g -O0 -D__DEBUG
 debug: nu
 
 %.o: src/%.c
