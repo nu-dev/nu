@@ -385,7 +385,7 @@ int buildNuDir(char *nuDir) {
         td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
         
         temp = (currPost->me)->raw_link;
-        temp = dirJoin(td_fetch_val_default(combined_dic, "linkprefix", "/"), temp);
+        temp = dirJoin(td_fetch_val_default(combined_dic, "linkprefix", ""), temp);
         td_put_val(temp_dic, "post.raw_link", temp);
         free(temp);
         
