@@ -258,7 +258,7 @@ and the post contents
 void parseFile(const char *filename, post *p) {
     char *in, *markdownContents;
     char *indexLocation, *temp;
-    template_dictionary *td_temp;
+    map_t hm_temp;
     
     /* input file */
     if ((in = dumpFile(filename)) == NULL) {
@@ -267,7 +267,7 @@ void parseFile(const char *filename, post *p) {
 		return;
     }
     
-    td_temp = td_new();
+    hm_temp = hashmap_new();
 	
 	/* check if header is present */
 	if (!strncmp(in, "----", 4)) {
@@ -276,13 +276,13 @@ void parseFile(const char *filename, post *p) {
 	    if (indexLocation == NULL) {
 	        fprintf(stderr, "["KRED"ERR"RESET"] Failed to parse input file %s - there is no closing `----` for kagyari contents\n", filename);
 	        free(in);
-	        free(td_temp);
+	        free(hm_temp);
 	        return;
 	    }
 	    
 	    /* parse values */
 	    temp = strndup(in+4, indexLocation-(in+4));
-	    parse_config(temp, NULL, td_temp);
+	    parse_config(temp, NULL, hm_temp);
 	    free(temp);
 	    
 	    markdownContents = indexLocation+4;
@@ -304,10 +304,10 @@ void parseFile(const char *filename, post *p) {
         temp = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
     }
     
-    p->name = strdup(td_fetch_val_default(td_temp, "name", temp));
+    p->name = hashmap_get_default(hm_temp, "name", temp);
     free(temp);
     
-	td_clean(td_temp);
+	hashmap_free(hm_temp);
 	free(in);
 }
 

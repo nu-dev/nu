@@ -178,7 +178,7 @@ int buildNuDir(char *nuDir) {
     char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
     unsigned int pagenum, i, maxPostsPerPage;
-    template_dictionary *global_dic = NULL, *theme_dic = NULL,
+    hashmap_map *global_dic = NULL, *theme_dic = NULL,
                         *currpost_dic = NULL, *temp_dic = NULL;
     post_list_elem *currPost = NULL;
     post_frag_list_elem *currFrag = NULL;
@@ -194,7 +194,7 @@ int buildNuDir(char *nuDir) {
     
     /* parse global config */
     printf("["KBLU"INFO"RESET"] Parsing global nu config...\n");
-    global_dic = td_new();
+    global_dic = hashmap_new();
     cfgfname = dirJoin(nuDir, NU_CONFIG_NAME);
     configContents = dumpFile(cfgfname);
     
@@ -213,8 +213,7 @@ int buildNuDir(char *nuDir) {
     
     
     /* check if theme config specified */
-    theme = td_fetch_val(global_dic, "theme");
-    if (theme == NULL) {
+    if (hashmap_get(global_dic, "theme", &theme) == MAP_MISSING) {
         fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `theme` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
         ok = 0;
         goto end;
@@ -233,7 +232,7 @@ int buildNuDir(char *nuDir) {
     }
     
     /* read theme config */
-    theme_dic = td_new();
+    theme_dic = hashmap_new();
     temp = dirJoin(themedir, NU_CONFIG_NAME);
     configContents = dumpFile(temp);
     freeThenNull(temp);
@@ -308,8 +307,7 @@ int buildNuDir(char *nuDir) {
     
     /* read the navbar fragment for the theme */
     printf("["KBLU"INFO"RESET"] Reading navbar template from navbar_template fragment...\n");
-    temp0 = td_fetch_val(combined_dic, "theme.navbar_template");
-    if (temp0 == NULL) {
+    if (hashmap_get(combined_dic, "theme.navbar_template", &temp0) == MAP_MISSING) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `navbar_template` in the theme config. Assuming no navbar is needed.\n");
         navbar_template = NULL;
         goto done_nav;
@@ -320,18 +318,18 @@ int buildNuDir(char *nuDir) {
     /* get list of special pages */
     while (currPost != NULL) {
         if ((currPost->me)->is_special) {
-            temp_dic = td_new();
-            td_put_val(temp_dic, "post.name", (currPost->me)->name);
-            td_put_val(temp_dic, "post.contents", (currPost->me)->contents);
-            td_put_val(temp_dic, "post.mdate", (currPost->me)->mdate);
-            td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
-            td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
-            td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
-            td_put_val(temp_dic, "post.raw_link", (currPost->me)->raw_link);
+            temp_dic = hashmap_new();
+            hashmap_put(temp_dic, "post.name", (currPost->me)->name);
+            hashmap_put(temp_dic, "post.contents", (currPost->me)->contents);
+            hashmap_put(temp_dic, "post.mdate", (currPost->me)->mdate);
+            hashmap_put(temp_dic, "post.mtime", (currPost->me)->mtime);
+            hashmap_put(temp_dic, "post.in_fn", (currPost->me)->in_fn);
+            hashmap_put(temp_dic, "post.out_loc", (currPost->me)->out_loc);
+            hashmap_put(temp_dic, "post.raw_link", (currPost->me)->raw_link);
             currpost_dic = td_merge(combined_dic, temp_dic);
             
             temp = calcPermalink((currPost->me)->out_loc);
-            td_put_val(currpost_dic, "post.link", temp);
+            hashmap_put(currpost_dic, "post.link", temp);
             freeThenNull(temp);
             
             /* double pass */
@@ -357,14 +355,13 @@ int buildNuDir(char *nuDir) {
         }
         currFrag = currFrag->next;
     }
-    td_put_val(combined_dic, "special.navbar", navbarText);
+    hashmap_put(combined_dic, "special.navbar", navbarText);
     
     done_nav:
     
     /* read the singlepost fragment for the theme */
     printf("["KBLU"INFO"RESET"] Reading single post template from singlepost_template fragment...\n");
-    temp0 = td_fetch_val(combined_dic, "theme.singlepost_template");
-    if (temp0 == NULL) {
+    if (hashmap_get(combined_dic, "theme.singlepost_template", &temp0) == MAP_MISSING) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `singlepost_template` in the theme config. Assuming no pages are needed.\n");
         singlepost_template = NULL;
     } else {
@@ -375,18 +372,18 @@ int buildNuDir(char *nuDir) {
     currPost = pl->head;
     while (currPost != NULL) {
         /* populate the dictionary */
-        temp_dic = td_new();
-        td_put_val(temp_dic, "post.name", (currPost->me)->name);
-        td_put_val(temp_dic, "post.contents", (currPost->me)->contents);
-        td_put_val(temp_dic, "post.cdate", (currPost->me)->cdate);
-        td_put_val(temp_dic, "post.mdate", (currPost->me)->mdate);
-        td_put_val(temp_dic, "post.mtime", (currPost->me)->mtime);
-        td_put_val(temp_dic, "post.in_fn", (currPost->me)->in_fn);
-        td_put_val(temp_dic, "post.out_loc", (currPost->me)->out_loc);
+        temp_dic = hashmap_new();
+        hashmap_put(temp_dic, "post.name", (currPost->me)->name);
+        hashmap_put(temp_dic, "post.contents", (currPost->me)->contents);
+        hashmap_put(temp_dic, "post.cdate", (currPost->me)->cdate);
+        hashmap_put(temp_dic, "post.mdate", (currPost->me)->mdate);
+        hashmap_put(temp_dic, "post.mtime", (currPost->me)->mtime);
+        hashmap_put(temp_dic, "post.in_fn", (currPost->me)->in_fn);
+        hashmap_put(temp_dic, "post.out_loc", (currPost->me)->out_loc);
         
         temp = (currPost->me)->raw_link;
         temp = dirJoin(td_fetch_val_default(combined_dic, "linkprefix", ""), temp);
-        td_put_val(temp_dic, "post.raw_link", temp);
+        hashmap_put(temp_dic, "post.raw_link", temp);
         free(temp);
         
         currpost_dic = td_merge(combined_dic, temp_dic);
@@ -395,13 +392,13 @@ int buildNuDir(char *nuDir) {
             templated_output = parse_template(special_template, currpost_dic);
             
             temp = calcPermalink((currPost->me)->out_loc);
-            td_put_val(currpost_dic, "post.link", temp);
+            hashmap_put(currpost_dic, "post.link", temp);
             freeThenNull(temp);
         } else {
             templated_output = parse_template(normal_template, currpost_dic);
 
             temp = calcPermalink((currPost->me)->out_loc);
-            td_put_val(currpost_dic, "post.link", temp);
+            hashmap_put(currpost_dic, "post.link", temp);
             freeThenNull(temp);
             
             /* double pass */
@@ -428,14 +425,14 @@ int buildNuDir(char *nuDir) {
         
         ok = writeFile((currPost->me)->out_loc, templated_output) + 1;
         if (!ok) {
-            td_clean(temp_dic);
+            hashmap_free(temp_dic);
             goto end;
         }
         
     nextpost:
         /* clean up */
         freeThenNull(currpost_dic);
-        td_clean(temp_dic);
+        hashmap_free(temp_dic);
         currPost = currPost->next;
     }
     
@@ -461,15 +458,14 @@ int buildNuDir(char *nuDir) {
     
     /* create all the pages */
     /* check if theme config max posts per page */
-    maxperpage = td_fetch_val(theme_dic, "theme.maxpostsperpage");
-    if (maxperpage == NULL || (maxPostsPerPage = atoi(maxperpage)) == 0) {
+    if (hashmap_get(theme_dic, "theme.maxpostsperpage", &maxperpage) == MAP_MISSING || (maxPostsPerPage = atoi(maxperpage)) == 0) {
         printf("["KYEL"WARN"RESET"] The theme `%s` does not specify `maxpostsperpage`, so the default value of 3 is being used instead.\n", theme);
         maxPostsPerPage = 3;
     }
     
     /* calculate number of pages */
     sprintf(currpagenum_buf, "%d", (pfl->length)/maxPostsPerPage + (((pfl->length)%maxPostsPerPage == 0)?0:1));
-    td_put_val(combined_dic, "pagination.totalpages", currpagenum_buf);
+    hashmap_put(combined_dic, "pagination.totalpages", currpagenum_buf);
     
     currFrag = pfl->head;
     i = 1;
@@ -503,9 +499,9 @@ int buildNuDir(char *nuDir) {
             sprintf(currpagenum_buf, "%d", pagenum);
             
             /* temp post dic */
-            temp_dic = td_new();
-            td_put_val(temp_dic, "pagination.currpage", currpage);
-            td_put_val(temp_dic, "pagination.currpagenum", currpagenum_buf);
+            temp_dic = hashmap_new();
+            hashmap_put(temp_dic, "pagination.currpage", currpage);
+            hashmap_put(temp_dic, "pagination.currpagenum", currpagenum_buf);
             
             /* merge the dics */
             currpost_dic = td_merge(combined_dic, temp_dic);
@@ -517,11 +513,11 @@ int buildNuDir(char *nuDir) {
                 /* not first page - there are newer pages*/
                 #define PAGINATION_NEWER_LINK "_pagination.newerLink"
                 temp = calcPermalink(lastPage);
-                td_put_val(currpost_dic, PAGINATION_NEWER_LINK, temp);
+                hashmap_put(currpost_dic, PAGINATION_NEWER_LINK, temp);
                 freeThenNull(temp);
                 temp2 = parse_template("<a class=\"{{theme.newerlinkclass}}\" href=\"{{linkprefix}}/{{"PAGINATION_NEWER_LINK"}}\">{{theme.newerlinktext}}</a>", currpost_dic);
-                td_remove_val(currpost_dic, PAGINATION_NEWER_LINK);
-                td_put_val(currpost_dic, "pagination.newer_link", temp2);
+                hashmap_remove(currpost_dic, PAGINATION_NEWER_LINK);
+                hashmap_put(currpost_dic, "pagination.newer_link", temp2);
                 freeThenNull(temp2);
                 freeThenNull(lastPage);
                 #undef PAGINATION_NEWER_LINK
@@ -536,10 +532,10 @@ int buildNuDir(char *nuDir) {
                 /* not last page - there are older pages */
                 sprintf(pagenum_buf2, "/page/%d.html", pagenum+1); /* plus 1 for next */
                 #define PAGINATION_OLDER_LINK "_pagination.olderLink"
-                td_put_val(currpost_dic, PAGINATION_OLDER_LINK, pagenum_buf2);
+                hashmap_put(currpost_dic, PAGINATION_OLDER_LINK, pagenum_buf2);
                 temp2 = parse_template("<a class=\"{{theme.olderlinkclass}}\" href=\"{{linkprefix}}{{"PAGINATION_OLDER_LINK"}}\">{{theme.olderlinktext}}</a>", currpost_dic);
-                td_remove_val(currpost_dic, PAGINATION_OLDER_LINK);
-                td_put_val(currpost_dic, "pagination.older_link", temp2);
+                hashmap_remove(currpost_dic, PAGINATION_OLDER_LINK);
+                hashmap_put(currpost_dic, "pagination.older_link", temp2);
                 freeThenNull(temp2);
                 #undef PAGINATION_OLDER_LINK
             }
@@ -552,10 +548,10 @@ int buildNuDir(char *nuDir) {
             /* write the /page/<pagenum> */
             ok = writeFile(currPageOut, templated_output) + 1;
             if (!ok) {
-                td_clean(temp_dic);
+                hashmap_free(temp_dic);
                 goto end;
             }
-            td_clean(temp_dic);
+            hashmap_free(temp_dic);
             
             /* also write the index.html if this is the first page */
             if (pagenum == 1) {

@@ -3,11 +3,12 @@
 /*
 Parse the template using the dictionary given
 */
-char *parse_template(const char *in, const template_dictionary *dictionary) {
+char *parse_template(const char *in, const map_t dictionary) {
     const char *lastEnding = in;
     char *output = NULL, *newOutput, *startToken, *endToken,
          *tokenKey;
     const char *tokenValue;
+    void *tmp;
 
     /* loop through until we hit the end */
     while (1) {
@@ -49,8 +50,8 @@ char *parse_template(const char *in, const template_dictionary *dictionary) {
         /* get that value from the dictionary */
         /* we do not ever mutate tokenValue, since it is a direct */
         /* reference from the dictionary */
-        tokenValue = td_fetch_val(dictionary, tokenKey);
-        if (tokenValue == NULL) {
+        tmp = (void *)tokenValue;
+        if (hashmap_get(dictionary, tokenKey, &tmp) == MAP_MISSING) {
             tokenValue = "";
         }
         

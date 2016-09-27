@@ -4,7 +4,7 @@
 #include <errno.h>
 #include "unvo.h"
 #include "kg.h"
-#include "dictionary.h"
+#include "hashmap.h"
 #include "post.h"
 #include "pageList.h"
 #include "strlist.h"

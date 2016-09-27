@@ -1,6 +1,6 @@
 #include "kg.h"
 
-int parse_config(const char *in, const char *prefix, template_dictionary *dictionary) {
+int parse_config(const char *in, const char *prefix, map_t dictionary) {
     char *start, *currkey, *temp, *currvalue, *ending;
     /* loop through until we hit the end */
     const char *last = in;
@@ -104,7 +104,7 @@ int parse_config(const char *in, const char *prefix, template_dictionary *dictio
         }
         
         /* save it in the dictionary */
-        td_put_val(dictionary, currkey, currvalue);
+        hashmap_put(dictionary, currkey, currvalue);
         free(currkey);
         free(currvalue);
         
@@ -136,15 +136,15 @@ int main(int argc, char **argv) {
         }
         
         if (buffer) {
-            template_dictionary *td = td_new();
+            map_t td = hashmap_new();
             template_dictionary_entry *temp;
             parse_config(buffer, "test.", td);
             temp = td->entryList;
-            while (temp != NULL) {
                 printf("entry_k=%s, entry_v=%s\n", temp->key, temp->value);
+            while (temp != NULL) {
                 temp = temp->next;
             }
-            td_clean(td);
+            hashmap_free(td);
             free(buffer);
         }
 
