@@ -149,12 +149,12 @@ static post_list *pl = NULL;
 static str_list *sl = NULL;
 static post_frag_list *pfl = NULL;
 static post_frag_list *sfl = NULL;
-static template_dictionary *combined_dic;
+static map_t combined_dic;
 
 int builderHelper(const char *inFile) {
     static post *temp;
     static const char *ext;
-    
+
     ext = fileExtension(inFile);
     if (strcmp(ext, "md") != 0 && strcmp(ext, "markdown") != 0) {
         printf("["KYEL"WARN"RESET"] Skipping file %s - file extension is not `md` or `markdown`.\n", inFile);
@@ -173,15 +173,16 @@ int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
          *temp2 = NULL, *currpage = NULL, *lastPage = NULL, *nextPage = NULL,
-         *currPageOut = NULL, *navbarText = NULL;
-    const char *theme, *maxperpage, *temp0;
+         *currPageOut = NULL, *navbarText = NULL, *maxperpage = NULL,
+         *theme = NULL, *temp0 = NULL;
     char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
     unsigned int pagenum, i, maxPostsPerPage;
-    hashmap_map *global_dic = NULL, *theme_dic = NULL,
-                        *currpost_dic = NULL, *temp_dic = NULL;
+    map_t global_dic = NULL, theme_dic = NULL,
+          currpost_dic = NULL, temp_dic = NULL;
     post_list_elem *currPost = NULL;
     post_frag_list_elem *currFrag = NULL;
+    void *tmp;
 
     buildingDir = dirJoin(nuDir, "raw");
     globNuDir = nuDir;
@@ -195,6 +196,7 @@ int buildNuDir(char *nuDir) {
     /* parse global config */
     printf("["KBLU"INFO"RESET"] Parsing global nu config...\n");
     global_dic = hashmap_new();
+    __okhere();
     cfgfname = dirJoin(nuDir, NU_CONFIG_NAME);
     configContents = dumpFile(cfgfname);
     
@@ -213,7 +215,8 @@ int buildNuDir(char *nuDir) {
     
     
     /* check if theme config specified */
-    if (hashmap_get(global_dic, "theme", &theme) == MAP_MISSING) {
+    tmp = (char *)theme;
+    if (hashmap_get(global_dic, "theme", &tmp) == MAP_MISSING) {
         fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `theme` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
         ok = 0;
         goto end;
@@ -278,7 +281,7 @@ int buildNuDir(char *nuDir) {
     freeThenNull(temp);
     
     /* combine the two dictionaries */
-    combined_dic = td_merge(global_dic, theme_dic);
+    combined_dic = hashmap_merge(global_dic, theme_dic);
     
     printf("["KBLU"INFO"RESET"] Creating list of posts...\n");
     /* loop through dir and do all the stuff*/
@@ -307,7 +310,8 @@ int buildNuDir(char *nuDir) {
     
     /* read the navbar fragment for the theme */
     printf("["KBLU"INFO"RESET"] Reading navbar template from navbar_template fragment...\n");
-    if (hashmap_get(combined_dic, "theme.navbar_template", &temp0) == MAP_MISSING) {
+    tmp = (char *)temp0;
+    if (hashmap_get(combined_dic, "theme.navbar_template", &tmp) == MAP_MISSING) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `navbar_template` in the theme config. Assuming no navbar is needed.\n");
         navbar_template = NULL;
         goto done_nav;
@@ -326,7 +330,7 @@ int buildNuDir(char *nuDir) {
             hashmap_put(temp_dic, "post.in_fn", (currPost->me)->in_fn);
             hashmap_put(temp_dic, "post.out_loc", (currPost->me)->out_loc);
             hashmap_put(temp_dic, "post.raw_link", (currPost->me)->raw_link);
-            currpost_dic = td_merge(combined_dic, temp_dic);
+            currpost_dic = hashmap_merge(combined_dic, temp_dic);
             
             temp = calcPermalink((currPost->me)->out_loc);
             hashmap_put(currpost_dic, "post.link", temp);
@@ -361,7 +365,8 @@ int buildNuDir(char *nuDir) {
     
     /* read the singlepost fragment for the theme */
     printf("["KBLU"INFO"RESET"] Reading single post template from singlepost_template fragment...\n");
-    if (hashmap_get(combined_dic, "theme.singlepost_template", &temp0) == MAP_MISSING) {
+    tmp = (char *)temp0;
+    if (hashmap_get(combined_dic, "theme.singlepost_template", &tmp) == MAP_MISSING) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `singlepost_template` in the theme config. Assuming no pages are needed.\n");
         singlepost_template = NULL;
     } else {
@@ -382,11 +387,11 @@ int buildNuDir(char *nuDir) {
         hashmap_put(temp_dic, "post.out_loc", (currPost->me)->out_loc);
         
         temp = (currPost->me)->raw_link;
-        temp = dirJoin(td_fetch_val_default(combined_dic, "linkprefix", ""), temp);
+        temp = dirJoin(hashmap_get_default(combined_dic, "linkprefix", ""), temp);
         hashmap_put(temp_dic, "post.raw_link", temp);
         free(temp);
         
-        currpost_dic = td_merge(combined_dic, temp_dic);
+        currpost_dic = hashmap_merge(combined_dic, temp_dic);
         
         if ((currPost->me)->is_special) {
             templated_output = parse_template(special_template, currpost_dic);
@@ -458,10 +463,12 @@ int buildNuDir(char *nuDir) {
     
     /* create all the pages */
     /* check if theme config max posts per page */
-    if (hashmap_get(theme_dic, "theme.maxpostsperpage", &maxperpage) == MAP_MISSING || (maxPostsPerPage = atoi(maxperpage)) == 0) {
+    tmp = (char *)maxperpage;
+    if (hashmap_get(theme_dic, "theme.maxpostsperpage", &tmp) == MAP_MISSING || (maxPostsPerPage = atoi(maxperpage)) == 0) {
         printf("["KYEL"WARN"RESET"] The theme `%s` does not specify `maxpostsperpage`, so the default value of 3 is being used instead.\n", theme);
         maxPostsPerPage = 3;
     }
+    free(maxperpage);
     
     /* calculate number of pages */
     sprintf(currpagenum_buf, "%d", (pfl->length)/maxPostsPerPage + (((pfl->length)%maxPostsPerPage == 0)?0:1));
@@ -504,7 +511,7 @@ int buildNuDir(char *nuDir) {
             hashmap_put(temp_dic, "pagination.currpagenum", currpagenum_buf);
             
             /* merge the dics */
-            currpost_dic = td_merge(combined_dic, temp_dic);
+            currpost_dic = hashmap_merge(combined_dic, temp_dic);
             
             /* get last page link */
             if (lastPage == NULL) { /* last page was null (aka this is first page) */
