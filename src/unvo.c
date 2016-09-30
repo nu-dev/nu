@@ -1,5 +1,10 @@
 #include "unvo.h"
 
+int myHelper123(any_t m, const char *k, any_t v) {
+    printf("k: %s, v: %s\n", k, (char *)v);
+    return MAP_OK;
+}
+
 /*
 Parse the template using the dictionary given
 */
@@ -22,6 +27,8 @@ char *parse_template(const char *in, const map_t dictionary) {
             fprintf(stderr, "["KRED"ERR"RESET"] Template does not close variable! Check to make sure that all `{{` are terminated by `}}`.\n");
             return NULL;
         }
+        
+        printf("delta: %ld\n", endToken-startToken);
         
         /* append everything before the "{{"" into the result */
         if (startToken == lastEnding) {
@@ -50,8 +57,12 @@ char *parse_template(const char *in, const map_t dictionary) {
         /* get that value from the dictionary */
         /* we do not ever mutate tokenValue, since it is a direct */
         /* reference from the dictionary */
-        tmp = (void *)tokenValue;
         if (hashmap_get(dictionary, tokenKey, &tmp) == MAP_MISSING) {
+            tokenValue = "";
+        }
+        tokenValue = (char *)tmp;
+        
+        if (tokenValue == NULL) {
             tokenValue = "";
         }
         

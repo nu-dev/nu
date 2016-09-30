@@ -106,7 +106,7 @@ int parse_config(const char *in, const char *prefix, map_t dictionary) {
         /* save it in the dictionary */
         hashmap_put(dictionary, currkey, currvalue);
         free(currkey);
-        free(currvalue);
+        /*free(currvalue);*/
         
         /* jump to the ending */
         last = ending;

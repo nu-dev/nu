@@ -172,9 +172,9 @@ int builderHelper(const char *inFile) {
 int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
-         *temp2 = NULL, *currpage = NULL, *lastPage = NULL, *nextPage = NULL,
-         *currPageOut = NULL, *navbarText = NULL, /*maxperpage = NULL,*/
-         *theme = NULL, *temp0 = NULL;
+         *temp2 = NULL, *currpage = NULL, *lastPage = NULL,
+         *currPageOut = NULL, *navbarText = NULL,
+         *theme = NULL;
     char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
     unsigned int pagenum, i, maxPostsPerPage;
@@ -223,7 +223,7 @@ int buildNuDir(char *nuDir) {
     temp = dirJoin(nuDir, "theme");
     themedir = dirJoin(temp, theme);
     freeThenNull(temp);
-    printf("["KBLU"INFO"RESET"] Parsing theme config from %s...\n", theme);
+    printf("["KBLU"INFO"RESET"] Parsing theme config from %s...\n", themedir);
     
     /* check if theme exists */
     if (!(dirExists(themedir) && isNuDir(themedir))) {
@@ -281,6 +281,8 @@ int buildNuDir(char *nuDir) {
     /* combine the two dictionaries */
     combined_dic = hashmap_merge(global_dic, theme_dic);
     
+    
+    
     printf("["KBLU"INFO"RESET"] Creating list of posts...\n");
     /* loop through dir and do all the stuff*/
     if (loopThroughDir(buildingDir, &builderHelper) != 0) {
@@ -305,7 +307,7 @@ int buildNuDir(char *nuDir) {
         }
         currPost = currPost->next;
     }
-    
+
     /* read the navbar fragment for the theme */
     printf("["KBLU"INFO"RESET"] Reading navbar template from navbar_template fragment...\n");
     if (hashmap_get(combined_dic, "theme.navbar_template", &tmp) == MAP_MISSING) {
@@ -313,13 +315,15 @@ int buildNuDir(char *nuDir) {
         navbar_template = NULL;
         goto done_nav;
     }
-    navbar_template = strdup((char *)temp0);
+    navbar_template = strdup((char *)tmp);
+    _okhere();
     
     currPost = pl->head;
     /* get list of special pages */
     while (currPost != NULL) {
         if ((currPost->me)->is_special) {
             temp_dic = hashmap_new();
+            _okhere();
             hashmap_put(temp_dic, "post.name", (currPost->me)->name);
             hashmap_put(temp_dic, "post.contents", (currPost->me)->contents);
             hashmap_put(temp_dic, "post.mdate", (currPost->me)->mdate);
@@ -334,8 +338,12 @@ int buildNuDir(char *nuDir) {
             freeThenNull(temp);
             
             /* double pass */
+            _okhere();
+            
             temp = parse_template(navbar_template, currpost_dic);
+            _okhere();
             temp2 = parse_template(temp, currpost_dic);
+            _okhere();
             freeThenNull(temp);
             
             /* add post fragment */
@@ -344,6 +352,7 @@ int buildNuDir(char *nuDir) {
         }
         currPost = currPost->next;
     }
+    _okhere();
     /* generate the navbar into the key `special.navbar` */
     currFrag = sfl->head;
     while (currFrag != NULL) {
@@ -357,7 +366,7 @@ int buildNuDir(char *nuDir) {
         currFrag = currFrag->next;
     }
     hashmap_put(combined_dic, "special.navbar", navbarText);
-    
+    _okhere();
     done_nav:
     
     /* read the singlepost fragment for the theme */
@@ -387,7 +396,11 @@ int buildNuDir(char *nuDir) {
         hashmap_put(temp_dic, "post.raw_link", temp);
         free(temp);
         
+        _okhere();
+        
         currpost_dic = hashmap_merge(combined_dic, temp_dic);
+        
+        _okhere();
         
         if ((currPost->me)->is_special) {
             templated_output = parse_template(special_template, currpost_dic);
@@ -402,11 +415,17 @@ int buildNuDir(char *nuDir) {
             hashmap_put(currpost_dic, "post.link", temp);
             freeThenNull(temp);
             
+            _okhere();
+            
             /* double pass */
             if (singlepost_template) {
+                _okhere();
+
                 temp = parse_template(singlepost_template, currpost_dic);
                 temp2 = parse_template(temp, currpost_dic);
                 freeThenNull(temp);
+                
+                _okhere();
                 
                 /* add post fragment */
                 pfl_add(pfl, temp2);
@@ -414,28 +433,35 @@ int buildNuDir(char *nuDir) {
             }
         }
         
+        _okhere();
+        
         if ((currPost->me)->delta_time <= 0) { /* skip this post if output file hasn't changed */
             goto nextpost;
         }
         printf("["KBLU"INFO"RESET"] Building file %s to %s...\n", (currPost->me)->in_fn, (currPost->me)->out_loc);
         
-        /* double pass */
-        temp = templated_output;
-        templated_output = parse_template(temp, currpost_dic);
-        freeThenNull(temp);
+        _okhere();
         
+        /* double pass */_okhere();
+        temp = templated_output;_okhere();
+        templated_output = parse_template(temp, currpost_dic);_okhere();
+        freeThenNull(temp);
+        _okhere();
         ok = writeFile((currPost->me)->out_loc, templated_output) + 1;
+        _okhere();
         if (!ok) {
             hashmap_free(temp_dic);
             goto end;
         }
-        
+        _okhere();
     nextpost:
         /* clean up */
         freeThenNull(currpost_dic);
         hashmap_free(temp_dic);
         currPost = currPost->next;
+        _okhere();
     }
+    _okhere();
     
     if (singlepost_template == NULL) {
         /* no pagination needed */
@@ -504,10 +530,11 @@ int buildNuDir(char *nuDir) {
             hashmap_put(temp_dic, "pagination.currpage", currpage);
             hashmap_put(temp_dic, "pagination.currpagenum", currpagenum_buf);
             
-            /* merge the dics */
+            /* merge the dics */_okhere();
             currpost_dic = hashmap_merge(combined_dic, temp_dic);
+
             
-            /* get last page link */
+            /* get last page link */_okhere();
             if (lastPage == NULL) { /* last page was null (aka this is first page) */
                 
             } else {
@@ -515,21 +542,21 @@ int buildNuDir(char *nuDir) {
                 #define PAGINATION_NEWER_LINK "_pagination.newerLink"
                 temp = calcPermalink(lastPage);
                 hashmap_put(currpost_dic, PAGINATION_NEWER_LINK, temp);
-                freeThenNull(temp);
+                freeThenNull(temp);_okhere();
                 temp2 = parse_template("<a class=\"{{theme.newerlinkclass}}\" href=\"{{linkprefix}}/{{"PAGINATION_NEWER_LINK"}}\">{{theme.newerlinktext}}</a>", currpost_dic);
                 hashmap_remove(currpost_dic, PAGINATION_NEWER_LINK);
-                hashmap_put(currpost_dic, "pagination.newer_link", temp2);
+                _okhere();hashmap_put(currpost_dic, "pagination.newer_link", temp2);
                 freeThenNull(temp2);
                 freeThenNull(lastPage);
                 #undef PAGINATION_NEWER_LINK
             }
-            lastPage = strdup(currPageOut);
+            lastPage = strdup(currPageOut);_okhere();
             
             /* get next page link */
             /* calculate if this is last page */
             if (currFrag->next == NULL) {
                 
-            } else {
+            } else {_okhere();
                 /* not last page - there are older pages */
                 sprintf(pagenum_buf2, "/page/%d.html", pagenum+1); /* plus 1 for next */
                 #define PAGINATION_OLDER_LINK "_pagination.olderLink"
@@ -539,10 +566,10 @@ int buildNuDir(char *nuDir) {
                 hashmap_put(currpost_dic, "pagination.older_link", temp2);
                 freeThenNull(temp2);
                 #undef PAGINATION_OLDER_LINK
-            }
-            
+            }_okhere();
+
             /* double pass */
-            temp = parse_template(index_template, currpost_dic);
+            temp = parse_template(index_template, currpost_dic);_okhere();
             templated_output = parse_template(temp, currpost_dic);
             freeThenNull(temp);
             
@@ -554,6 +581,7 @@ int buildNuDir(char *nuDir) {
             }
             hashmap_free(temp_dic);
             
+            _okhere();
             /* also write the index.html if this is the first page */
             if (pagenum == 1) {
                 temp = dirJoin(nuDir, "index.html");
@@ -563,6 +591,8 @@ int buildNuDir(char *nuDir) {
                 }
                 freeThenNull(temp);
             }
+            
+            _okhere();
             
             i = 1;
             pagenum++;
@@ -577,7 +607,7 @@ int buildNuDir(char *nuDir) {
     }
     
     done_pages:
-    end:
+    end:/*
     fflush(stdout);
     if (pl) pl_clean(pl);
     if (sl) sl_clean(sl);
@@ -592,7 +622,6 @@ int buildNuDir(char *nuDir) {
     free(currpage);
     free(lastPage);
     free(navbarText);
-    free(nextPage);
     free(currPageOut);
     free(theme_dic);
     free(global_dic);
@@ -601,6 +630,6 @@ int buildNuDir(char *nuDir) {
     free(special_template);
     free(index_template);
     free(singlepost_template);
-    free(navbar_template);
+    free(navbar_template);*/
     return !ok;
 }

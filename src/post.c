@@ -88,9 +88,12 @@ void pl_clean(post_list *in) {
     post_list_elem *curr = in->head;
     post_list_elem *next;
     
+    printf("my size: %d", in->length);
+    
     /* loop through the entire list */
     while (curr != NULL) {
         next = curr->next;
+        if (curr->me == NULL) {printf("wtf?...\n"); break;}
         post_free(curr->me);
         free(curr);
         curr = next;

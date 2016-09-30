@@ -19,9 +19,12 @@ void sl_clean(str_list *in) {
     str_list_elem *curr = in->head;
     str_list_elem *next;
     
+    printf("im %d\n", in->length);
+    
     /* loop through the entire list */
     while (curr != NULL) {
         next = curr->next;
+        if (curr->val == NULL) {break;}
         free(curr->val);
         free(curr);
         curr = next;
