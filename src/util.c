@@ -258,6 +258,7 @@ and the post contents
 void parseFile(const char *filename, post *p) {
     char *in, *markdownContents;
     char *indexLocation, *temp;
+    void *tmp;
     map_t hm_temp;
     
     /* input file */
@@ -304,8 +305,10 @@ void parseFile(const char *filename, post *p) {
         temp = strndup(temp, strlen(temp) - 3); /* ".md" = 3 chars */
     }
     
-    p->name = hashmap_get_default(hm_temp, "name", temp);
-    free(temp);
+    tmp = NULL;
+    hashmap_get_default(hm_temp, "name", &tmp);
+    if (tmp == NULL) { p->name = temp; }
+    else { p->name = (char *)tmp; free(temp); }
     
 	hashmap_free(hm_temp);
 	free(in);

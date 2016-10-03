@@ -72,6 +72,10 @@ post *post_create(const char *in_fpath) {
         free(timestamp);
     }
     
+#ifdef __DEBUG
+printf("Made a new post!\nattr are:\n");
+printf("\tName: %s\n\tRaw link: %s\n\tis special:%d\n\tin fn:%s\n", to->name, to->raw_link, to->is_special, to->in_fn);
+#endif
     return to;
 }
 

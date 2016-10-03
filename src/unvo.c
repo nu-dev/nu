@@ -28,8 +28,6 @@ char *parse_template(const char *in, const map_t dictionary) {
             return NULL;
         }
         
-        printf("delta: %ld\n", endToken-startToken);
-        
         /* append everything before the "{{"" into the result */
         if (startToken == lastEnding) {
             /* nothing to append, there is nothing in between */
@@ -57,13 +55,12 @@ char *parse_template(const char *in, const map_t dictionary) {
         /* get that value from the dictionary */
         /* we do not ever mutate tokenValue, since it is a direct */
         /* reference from the dictionary */
-        if (hashmap_get(dictionary, tokenKey, &tmp) == MAP_MISSING) {
-            tokenValue = "";
-        }
-        tokenValue = (char *)tmp;
+        hashmap_get(dictionary, tokenKey, &tmp);
         
-        if (tokenValue == NULL) {
+        if (tmp == NULL) {
             tokenValue = "";
+        } else {
+            tokenValue = (char *)tmp;
         }
         
         /* append that value in the result */
