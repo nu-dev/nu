@@ -332,7 +332,7 @@ int buildNuDir(char *nuDir) {
             currpost_dic = hashmap_merge(combined_dic, temp_dic);
             
             temp = calcPermalink((currPost->me)->out_loc);
-            hashmap_put(currpost_dic, "post.link", temp);
+            hashmap_put(currpost_dic, "post.link", strdup(temp));
             freeThenNull(temp);
             
             /* double pass */
@@ -388,23 +388,19 @@ int buildNuDir(char *nuDir) {
         
         temp = (currPost->me)->raw_link;
         temp = dirJoin(hashmap_get_default(combined_dic, "linkprefix", ""), temp);
-        hashmap_put(temp_dic, "post.raw_link", temp);
+        hashmap_put(temp_dic, "post.raw_link", strdup(temp));
         free(temp);
         
         currpost_dic = hashmap_merge(combined_dic, temp_dic);
         
+        temp = calcPermalink((currPost->me)->out_loc);
+        hashmap_put(currpost_dic, "post.link", strdup(temp));
+        freeThenNull(temp);
+        
         if ((currPost->me)->is_special) {
             templated_output = parse_template(special_template, currpost_dic);
-            
-            temp = calcPermalink((currPost->me)->out_loc);
-            hashmap_put(currpost_dic, "post.link", temp);
-            freeThenNull(temp);
         } else {
             templated_output = parse_template(normal_template, currpost_dic);
-
-            temp = calcPermalink((currPost->me)->out_loc);
-            hashmap_put(currpost_dic, "post.link", temp);
-            freeThenNull(temp);
             
             /* double pass */
             if (singlepost_template) {
@@ -473,7 +469,7 @@ int buildNuDir(char *nuDir) {
     
     /* calculate number of pages */
     sprintf(currpagenum_buf, "%d", (pfl->length)/maxPostsPerPage + (((pfl->length)%maxPostsPerPage == 0)?0:1));
-    hashmap_put(combined_dic, "pagination.totalpages", currpagenum_buf);
+    hashmap_put(combined_dic, "pagination.totalpages", strdup(currpagenum_buf));
     
     currFrag = pfl->head;
     i = 1;

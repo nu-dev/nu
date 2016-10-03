@@ -37,7 +37,7 @@ extern char *globNuDir;
 char *calcPermalink(const char *output_fl) {
     static int offset;
     
-    if (offset == 0) offset = strlen(globNuDir) + 1;
+    if (offset == 0) offset = strlen(globNuDir);
     return strdup(&output_fl[offset]);
 }
 

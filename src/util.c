@@ -306,7 +306,7 @@ void parseFile(const char *filename, post *p) {
     }
     
     tmp = NULL;
-    hashmap_get_default(hm_temp, "name", &tmp);
+    hashmap_get(hm_temp, "name", &tmp);
     if (tmp == NULL) { p->name = temp; }
     else { p->name = (char *)tmp; free(temp); }
     
