@@ -131,7 +131,7 @@ char *getNuDir(int argc, char** argv) {
         return NULL;
     }
     if (!isNuDir(nuDir)) goto notnudir;
-    fprintf(stderr, "["KBLU"INFO"RESET"] Using `%s` as the nu directory.\n", nuDir);
+    printf("["KBLU"INFO"RESET"] Using `%s` as the nu directory.\n", nuDir);
     return nuDir;
 notnudir:
     fprintf(stderr, "["KRED"ERR"RESET"] The specified directory %s is not a valid nu directory. Please check that the file `"NU_CONFIG_NAME"` exists and try again.\n", nuDir);

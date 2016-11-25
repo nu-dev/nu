@@ -84,5 +84,5 @@ int parseOpts(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-    return printf(parseOpts(argc, argv) == 0? "" : "["KRED"ERR"RESET"] Errors occured. Please check them and run again.\n");
+    return fprintf(stderr, parseOpts(argc, argv) == 0? "" : "["KRED"ERR"RESET"] Errors occured. Please check them and run again.\n");
 }
