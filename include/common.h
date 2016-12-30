@@ -1,5 +1,5 @@
-#ifndef _CFGHELPER_INC
-#define _CFGHELPER_INC
+#ifndef _NU_COMMON_HEADER_INC
+#define _NU_COMMON_HEADER_INC
 
 /* external headers */
 #include <stdio.h>
@@ -46,12 +46,13 @@
 #define _okhere() do { printf("ok %d\n", __LINE__); fflush(stdout); } while(0)
 #else
 #define _okhere()
+#define debug()
 #endif
 #define NU_CONFIG_NAME "config.kg"
 #define NU_CONFIG_NAME_LENGTH 9
 
 /* nu version */
-#define NU_VERSION      "0.2.0b"
+#define NU_VERSION      "1.0.0"
 #define BUF_SIZE 8192
 
 char *globNuDir;

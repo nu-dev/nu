@@ -169,6 +169,55 @@ int builderHelper(const char *inFile) {
 	return 0;
 }
 
+#ifdef wtf_gcc_why_do_you_still_give_me_errors_about_this_piece_of_code
+/*
+char *str_replace(char *orig, char *rep, char *with) {
+    char *result; // the return string
+    char *ins;    // the next insert point
+    char *tmp;    // varies
+    int len_rep;  // length of rep (the string to remove)
+    int len_with; // length of with (the string to replace rep with)
+    int len_front; // distance between rep and end of last rep
+    int count;    // number of replacements
+
+    // sanity checks and initialization
+    if (!orig || !rep)
+        return NULL;
+    len_rep = strlen(rep);
+    if (len_rep == 0)
+        return NULL; // empty rep causes infinite loop during count
+    if (!with)
+        with = "";
+    len_with = strlen(with);
+
+    // count the number of replacements needed
+    ins = orig;
+    for (count = 0; (tmp = strstr(ins, rep)); ++count) {
+        ins = tmp + len_rep;
+    }
+
+    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+    if (!result)
+        return NULL;
+
+    // first time through the loop, all the variable are set correctly
+    // from here on,
+    //    tmp points to the end of the result string
+    //    ins points to the next occurrence of rep in orig
+    //    orig points to the remainder of orig after "end of rep"
+    while (count--) {
+        ins = strstr(orig, rep);
+        len_front = ins - orig;
+        tmp = strncpy(tmp, orig, len_front) + len_front;
+        tmp = strcpy(tmp, with) + len_with;
+        orig += len_front + len_rep; // move to next "end of rep"
+    }
+    strcpy(tmp, orig);
+    return result;
+}*/
+#endif
+
 int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
@@ -336,8 +385,8 @@ int buildNuDir(char *nuDir) {
             freeThenNull(temp);
             
             /* double pass */
-            temp = parse_template(navbar_template, currpost_dic);
-            temp2 = parse_template(temp, currpost_dic);
+            temp = luat_parse(navbar_template, currpost_dic);
+            temp2 = luat_parse(temp, currpost_dic);
             
             freeThenNull(temp);
             
@@ -398,15 +447,15 @@ int buildNuDir(char *nuDir) {
         freeThenNull(temp);
         
         if ((currPost->me)->is_special) {
-            templated_output = parse_template(special_template, currpost_dic);
+            templated_output = luat_parse(special_template, currpost_dic);
         } else {
-            templated_output = parse_template(normal_template, currpost_dic);
+            templated_output = luat_parse(normal_template, currpost_dic);
             
             /* double pass */
             if (singlepost_template) {
                 
-                temp = parse_template(singlepost_template, currpost_dic);
-                temp2 = parse_template(temp, currpost_dic);
+                temp = luat_parse(singlepost_template, currpost_dic);
+                temp2 = luat_parse(temp, currpost_dic);
                 freeThenNull(temp);
                 
                 /* add post fragment */
@@ -422,7 +471,7 @@ int buildNuDir(char *nuDir) {
         
         /* double pass */
         temp = templated_output;
-        templated_output = parse_template(temp, currpost_dic);
+        templated_output = luat_parse(temp, currpost_dic);
         freeThenNull(temp);
         
         ok = writeFile((currPost->me)->out_loc, templated_output) + 1;
@@ -443,8 +492,8 @@ int buildNuDir(char *nuDir) {
     if (singlepost_template == NULL) {
         /* no pagination needed */
         /* double pass */
-        temp = parse_template(index_template, combined_dic);
-        templated_output = parse_template(temp, combined_dic);
+        temp = luat_parse(index_template, combined_dic);
+        templated_output = luat_parse(temp, combined_dic);
         freeThenNull(temp);
         
         temp = dirJoin(nuDir, "index.html");
@@ -492,7 +541,7 @@ int buildNuDir(char *nuDir) {
            OR if the next page fragment == NULL
            then dump the current string to the page `n` */
         if (i == maxPostsPerPage || currFrag->next == NULL) {
-            /* get page output */
+            /* get page output filename */
             temp = dirJoin(nuDir, "page");
             sprintf(pagenum_buf, "%d.html", pagenum);
             currPageOut = dirJoin(temp, pagenum_buf);
@@ -510,7 +559,6 @@ int buildNuDir(char *nuDir) {
             /* merge the dics */
             currpost_dic = hashmap_merge(combined_dic, temp_dic);
 
-            
             /* get last page link */
             if (lastPage == NULL) { /* last page was null (aka this is first page) */
                 
@@ -520,7 +568,7 @@ int buildNuDir(char *nuDir) {
                 temp = calcPermalink(lastPage);
                 hashmap_put(currpost_dic, PAGINATION_NEWER_LINK, temp);
                 freeThenNull(temp);
-                temp2 = parse_template("<a class=\"{{theme.newerlinkclass}}\" href=\"{{linkprefix}}/{{"PAGINATION_NEWER_LINK"}}\">{{theme.newerlinktext}}</a>", currpost_dic);
+                temp2 = luat_parse("<a class=\"{{theme.newerlinkclass}}\" href=\"{{linkprefix}}/{{"PAGINATION_NEWER_LINK"}}\">{{theme.newerlinktext}}</a>", currpost_dic);
                 hashmap_remove(currpost_dic, PAGINATION_NEWER_LINK);
                 hashmap_put(currpost_dic, "pagination.newer_link", temp2);
                 freeThenNull(lastPage);
@@ -537,15 +585,16 @@ int buildNuDir(char *nuDir) {
                 sprintf(pagenum_buf2, "/page/%d.html", pagenum+1); /* plus 1 for next */
                 #define PAGINATION_OLDER_LINK "_pagination.olderLink"
                 hashmap_put(currpost_dic, PAGINATION_OLDER_LINK, pagenum_buf2);
-                temp2 = parse_template("<a class=\"{{theme.olderlinkclass}}\" href=\"{{linkprefix}}{{"PAGINATION_OLDER_LINK"}}\">{{theme.olderlinktext}}</a>", currpost_dic);
+                temp2 = luat_parse("<a class=\"{{theme.olderlinkclass}}\" href=\"{{linkprefix}}{{"PAGINATION_OLDER_LINK"}}\">{{theme.olderlinktext}}</a>", currpost_dic);
                 hashmap_remove(currpost_dic, PAGINATION_OLDER_LINK);
                 hashmap_put(currpost_dic, "pagination.older_link", temp2);
                 #undef PAGINATION_OLDER_LINK
             }
 
             /* double pass */
-            temp = parse_template(index_template, currpost_dic);
-            templated_output = parse_template(temp, currpost_dic);
+            temp = luat_parse(index_template, currpost_dic);
+            printf("ayy lmao: %s\n", temp);
+            templated_output = luat_parse(temp, currpost_dic);
             freeThenNull(temp);
             
             /* write the /page/<pagenum> */

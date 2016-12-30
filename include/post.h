@@ -1,6 +1,5 @@
 #ifndef _POSTUTIL_INC
 #define _POSTUTIL_INC
-
 #include "common.h"
 #include "util.h"
 
