@@ -5,6 +5,9 @@ OUTPUT=nu
 
 default: nu
 
+mkobjs:
+	mkdir -p objs
+
 debug: CFLAGS += -g -O0 -D__DEBUG
 debug: nu
 
@@ -18,10 +21,10 @@ luat_file.o: src/luat.lua
 objs/%.o: src/%.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(EXTRA)
 
-nu: $(OBJ)
+nu: mkobjs $(OBJ)
 	$(CC) -o $(OUTPUT) $(OBJ) $(LIBFLAGS) $(CFLAGS)
 	-rm -f $(OBJ) objs/luat_file.luac
 
 clean:
-	-rm -f $(OBJ) objs/luat_file.luac
+	-rm -f $(OBJ) objs/luat_file.luac src/luat_file.c
 	-rm -f $(OUTPUT)
