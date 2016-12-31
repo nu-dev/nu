@@ -1,11 +1,19 @@
+# downloaded sources
 hoedown/
 libnucommon/
+lua/
+lua/*
+
+# local test stuff
 kagyari/
 fs-layout/
-nu
 blog/
+
+# compiled output
+nu
 objs/
 
+# generated c files
 src/luat_file.c
 test.c
 
