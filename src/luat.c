@@ -1,7 +1,7 @@
 #include "luat.h"
 
 #if false
-static void stackDump (lua_State *L) {
+static void stackDump(lua_State *L) {
     int i;
     int top = lua_gettop(L);
     for (i = top; i >= 1; i--) {  /* repeat for each level */
@@ -127,6 +127,8 @@ char *luat_parse(const char *str, const map_t dictionary) {
     lua_getfield(L, -1, "compile");
     /* Put the template string on the stack that we will use. */
     lua_pushstring(L, str);
+    
+    printf("%s\n", lua_tostring(L, -1));
 
     /* Push a table which will be our sandboxed env onto the stack. */
     lua_newtable(L);

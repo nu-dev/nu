@@ -456,6 +456,11 @@ int buildNuDir(char *nuDir) {
                 
                 temp = luat_parse(singlepost_template, currpost_dic);
                 temp2 = luat_parse(temp, currpost_dic);
+                
+                /*
+                printf("pass1: %s", temp);
+                printf("pass2:%s", temp2);
+                */
                 freeThenNull(temp);
                 
                 /* add post fragment */
@@ -593,7 +598,7 @@ int buildNuDir(char *nuDir) {
 
             /* double pass */
             temp = luat_parse(index_template, currpost_dic);
-            printf("ayy lmao: %s\n", temp);
+            
             templated_output = luat_parse(temp, currpost_dic);
             freeThenNull(temp);
             
