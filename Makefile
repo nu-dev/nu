@@ -2,7 +2,8 @@ INCLUDES=-I include/ -I libs/hoedown/src/ -I libs/libnucommon/ -I libs/goatee/in
 INCLUDES2=$(INCLUDES) -Ilibs/goatee/libs/lua/src -Ilibs/goatee/libs/libstring/include 
 CFLAGS=$(INCLUDES2) -Wall -Werror -pedantic
 LIBFLAGS=-Llibs -lhoedown -lnucommon -lgoatee -llua -lstring
-OBJ=objs/util.o objs/pageList.o objs/post.o objs/unvo.o objs/kg.o objs/post.o objs/nu.o objs/cmds.o objs/strlist.o
+OBJ=objs/util.o objs/pageList.o objs/post.o objs/unvo.o objs/kg.o objs/post.o \
+	objs/nu.o objs/cmds.o objs/strlist.o objs/luacompat.o
 OUTPUT=nu
 
 default: nu

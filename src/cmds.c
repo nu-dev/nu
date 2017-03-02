@@ -6,8 +6,8 @@ static const char *defaultConfig_contents =
 "# nu default config\n"
 "# for help, please visit https://github.com/nu-dev/nu/wiki/Getting-Started\n"
 "theme = \"basic\"\n"
-"sitename = \"My new blog\"\n"
-"sitedesc = \"My new blog!\"\n";
+"name = \"My new blog\"\n"
+"desc = \"My new blog!\"\n";
 
 int newSrv(char *name) {
     #define DIRSTOMAKECOUNT 6
@@ -140,6 +140,7 @@ notnudir:
 }
 
 extern char *globNuDir;
+extern char *theme;
 static char *normal_template;
 static char *special_template;
 static char *index_template;
@@ -173,8 +174,7 @@ int buildNuDir(char *nuDir) {
     char *buildingDir = NULL, *configContents = NULL, *cfgfname = NULL,
          *temp = NULL, *themedir = NULL, *templated_output = NULL,
          *temp2 = NULL, *currpage = NULL, *lastPage = NULL,
-         *currPageOut = NULL, *navbarText = NULL,
-         *theme = NULL;
+         *currPageOut = NULL, *navbarText = NULL;
     char pagenum_buf[16], pagenum_buf2[22], currpagenum_buf[11];
     int ok;
     unsigned int pagenum, i, maxPostsPerPage;

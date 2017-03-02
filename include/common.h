@@ -68,4 +68,9 @@ typedef struct _post {
     double delta_time; /* delta time between input and output */
     int is_special; /* is this a special post */
 } post;
+
+struct NuRunConfig {
+    char *nudir;
+    char *themedir;
+};
 #endif
