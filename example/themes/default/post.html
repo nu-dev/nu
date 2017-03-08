@@ -1,0 +1,8 @@
+{% page.title = post.title %}
+<div class="post">
+<h1>{{ post.title }}</h1>
+{% if !post.isSpecial then %}
+Last modified: {{ post.lastmodified }}
+{% end %}
+{{ post.content }}
+</div>
