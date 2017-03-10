@@ -69,4 +69,3 @@ typedef struct _post {
     int is_special; /* is this a special post */
 } post;
 #endif
-
