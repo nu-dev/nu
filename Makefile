@@ -14,9 +14,10 @@ objs/%.o: src/%.c
 	@mkdir -p objs/
 	$(CC) -c -o $@ $< $(CFLAGS) $(EXTRA)
 
-nu: $(OBJ) libs
+nu: libs $(OBJ)
 	$(CC) -o $(OUTPUT) $(OBJ) $(LIBFLAGS) $(CFLAGS)
 
+.PHONY: clean
 clean:
 	-rm -f $(OBJ)
 	-rm -f $(OUTPUT)
@@ -26,6 +27,10 @@ clean:
 ################################################################################
 
 libs: libs/libhoedown.a libs/libnucommon.a libs/libgoatee.a libs/include
+
+# clean libs
+cleanlibs:
+	rm -rf libs/libhoedown.a libs/libnucommon.a libs/libgoatee.a libs/include
 
 # build hoedown
 libs/libhoedown.a: libs/hoedown

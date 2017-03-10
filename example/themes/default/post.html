@@ -1,8 +1,8 @@
-{% page.title = post.title %}
 <div class="post">
-<h1>{{ post.title }}</h1>
-{% if !post.isSpecial then %}
-Last modified: {{ post.lastmodified }}
+<h1>{{ post.name }}</h1>
+{% if not post.is_special then %}
+Created: {{ post.cdate }}
+Last modified: {{ post.mdate }} at {{ post.mtime }}
 {% end %}
-{{ post.content }}
+{{ post.contents }}
 </div>

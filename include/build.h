@@ -9,6 +9,7 @@
 #include "pageList.h"
 #include "strlist.h"
 #include "libstring.h"
+#include "goatee_cfg.h"
 
 int buildNuDir(const char *nuDir);
 #endif
