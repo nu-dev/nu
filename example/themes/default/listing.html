@@ -3,7 +3,7 @@ for i,post in ipairs(posts) do
 if tonumber(i) >= tonumber(listing.start) and tonumber(i) < tonumber(listing.finish) then
 %}
 <div class="post">
-<h1>{{ post.name }}</h1>
+<h1><a href="{{linkprefix}}/{{ post.link }}">{{ post.name }}</a></h1>
 {{ post.cdate }}<br />
 {{ post.contents }}
 </div>

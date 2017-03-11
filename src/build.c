@@ -144,6 +144,7 @@ static void pushPost(lua_State *L, post *in, int n) {
             {"in_fn", in->in_fn},
             {"out_loc", in->out_loc},
             {"raw_link", in->raw_link},
+            {"link", calcPermalink(in->out_loc)},
             {NULL, NULL}};
     int i;
     
@@ -165,6 +166,8 @@ static void pushPost(lua_State *L, post *in, int n) {
         if (spt[i].key == NULL) break;
         lua_pushstring(L, spt[i].key);
         lua_pushstring(L, spt[i].value);
+
+        if (*spt[i].key == 'l') free(spt[i].value);
 
         lua_settable(L, -3);
     }
@@ -316,6 +319,11 @@ static char *getThemeFile(char *fName, int isRequired) {
     return tmp1;
 }
 
+void free_wrapper(void *in) {
+    printf("freed %p\n", in);
+    free(in);
+}
+
 int buildNuDir(const char *nuDir) {
     char *rawDir, *tmp1, *tmp2;
     const char *ppp;
@@ -397,7 +405,7 @@ int buildNuDir(const char *nuDir) {
     /* cleanup */
     lua_close(Lpass);
     pl_clean(gl_pl);
-    hashmap_clean(gl_map, &free);
+    hashmap_clean(gl_map, &free_wrapper);
     hashmap_free(gl_map);
     free(rawDir);
     free(globNuDir);
