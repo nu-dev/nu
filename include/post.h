@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "util.h"
+#include "libstring.h"
 
 /* struct _post moved to common.h */
 

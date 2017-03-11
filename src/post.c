@@ -35,7 +35,6 @@ post *post_create(const char *in_fpath) {
     strftime(to->mdate, 50, "%B %d, %Y", inTime_tm);
 	
 	/* out_loc and is_special */
-	printf("%s, %s\n", to->in_fn, globNuDir);
     to->out_loc = getOutputFileName(to->in_fn, globNuDir, &(to->is_special));
     makeFnSafe(to->out_loc);
     
@@ -68,7 +67,7 @@ post *post_create(const char *in_fpath) {
         time(&tmpTime);
         createTime = localtime(&tmpTime);
         if (strptime(timestamp, "%Y-%m-%d", createTime) != NULL) {
-            strftime(to->cdate, 50, "%b %d, %Y", createTime);
+            strftime(to->cdate, 50, "%B %d, %Y", createTime);
         } else {
             fprintf(stderr, "["KRED"ERR"RESET"] Error while parsing time. This should not happen!!\n");
             return NULL;
@@ -87,7 +86,7 @@ post *post_create(const char *in_fpath) {
 void post_free(post *in) {
     free(in->name);
     free(in->raw_link);
-    free(in->contents);
+    string_free(in->contents);
     free(in->in_fn);
     free(in->out_loc);
     free(in);
@@ -135,7 +134,7 @@ int _pl_cmp(const void *one, const void *two) {
         } else if (*two_name > *one_name) {
             return 1;
         }
-        /* they are equal, so keep going */
+        /* they are equal so far, keep going */
         one_name++;
         two_name++;
     }

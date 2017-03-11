@@ -1,5 +1,6 @@
 #ifndef _NU_BUILD_INC
 #define _NU_BUILD_INC
+#define LUA_USE_APICHECK
 #include "common.h"
 #include <errno.h>
 #include "unvo.h"
