@@ -1,0 +1,23 @@
+{%
+for i,post in ipairs(posts) do
+if tonumber(i) >= tonumber(listing.start) and tonumber(i) < tonumber(listing.finish) then
+%}
+<div class="post">
+<h1>{{ post.name }}</h1>
+{{ post.cdate }}<br />
+{{ post.contents }}
+</div>
+<hr />
+{%
+end
+end
+%}
+
+Page {{ listing.currpage }} of {{ listing.totalpages }}
+<hr />
+{% if not (listing.nextpage == nil) then %}
+<a href="{{ listing.nextpage }}">Next Page</a>
+{% end %}
+{% if not (listing.prevpage == nil) then %}
+<a href="{{ listing.prevpage }}">Previous Page</a>
+{% end %}

@@ -1,5 +1,5 @@
 #ifndef _PAGELIST_INC
-#define _POSTUTIL_INC
+#define _PAGELIST_INC
 
 /* custom headers */
 #include "common.h"

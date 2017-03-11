@@ -1,0 +1,7 @@
+# nu default config
+# for help, please visit https://github.com/ohnx/nu/wiki
+theme = "default"
+sitename = "nu test blog"
+sitedesc = "A simple blog that demonstrates how nu works."
+linkprefix = "/example"
+coolstuff = "this is a variable used from within a post!. Unfortunately, a second time doesn't work. {{coolstuff}}"

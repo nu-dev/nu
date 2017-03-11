@@ -1,6 +1,3 @@
-#ifndef _CFGHELPER_INC
-#define _CFGHELPER_INC
-
 /* external headers */
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,9 +9,11 @@
 #define __USE_XOPEN
 #define _GNU_SOURCE
 #include <time.h>
-
 /* custom headers */
 #include "libnucommon.h"
+
+#ifndef _CFGHELPER_INC
+#define _CFGHELPER_INC
 
 /* color codes */
 #ifndef _NU_COLORS
@@ -41,12 +40,13 @@
         #define RESET ""
     #endif
 #endif
-#define freeThenNull(x) do {free(x); x=NULL;} while(0);
+
 #ifdef __DEBUG
 #define _okhere() do { printf("ok %d\n", __LINE__); fflush(stdout); } while(0)
 #else
 #define _okhere()
 #endif
+
 #define NU_CONFIG_NAME "config.kg"
 #define NU_CONFIG_NAME_LENGTH 9
 

@@ -1,93 +1,210 @@
 #include "unvo.h"
 
-int myHelper123(any_t m, const char *k, any_t v) {
-    printf("k: %s, v: %s\n", k, (char *)v);
+static goatee_logger *gl = NULL;
+static string unvo_handle_include(string all, string in);
+
+static struct handlerInfo myModifiers[] = {
+    {'#', '#', &goatee_gen_handle_comment},
+    {'%', '%', &goatee_gen_handle_exec},
+    {'{', '}', &goatee_gen_handle_var},
+    {'+', '+', &unvo_handle_include},
+    {0,0, NULL}
+};
+
+static string unvo_handle_include(string all, string in) {
+    string fileIn, tmp, tmp3;
+    char *tmp2, *tmp4, *tmp5;
+    
+    tmp2 = goatee_trim_spaces(in);
+    tmp4 = dirJoin(globNuDir, "scripts/");
+    tmp5 = dirJoin(tmp4, tmp2);
+    free(tmp2);
+    free(tmp4);
+    fileIn = goatee_dump_file(tmp5);
+    
+    if (fileIn == NULL) {
+        tmp3 = string_append("Failed to find file ", tmp5);
+        gl->log(gl, GLL_WARN, tmp3);
+        string_free(tmp3);
+    
+        free(tmp5);
+        return all;
+    }
+    
+    free(tmp5);
+    
+    tmp = goatee_gen_noHeader(fileIn, myModifiers, 0);
+    string_free(fileIn);
+    
+    return string_append(all, string_temporary(
+        string_appendv(3, "\n", string_temporary(tmp), "\n")
+    ));
+}
+
+#if 0
+static void stackDump(lua_State *L) {
+    int i;
+    int top = lua_gettop(L);
+    for (i = -1; i >= -top; i--) {  /* repeat for each level */
+      int t = lua_type(L, i);
+      printf("%d: ", i);
+      switch (t) {
+        case LUA_TSTRING:  /* strings */
+          printf("\"%s\"", lua_tostring(L, i));
+          break;
+    
+        case LUA_TBOOLEAN:  /* booleans */
+          printf(lua_toboolean(L, i) ? "true" : "false");
+          break;
+    
+        case LUA_TNUMBER:  /* numbers */
+          printf("%g", lua_tonumber(L, i));
+          break;
+    
+        default:  /* other values */
+          printf("%s", lua_typename(L, t));
+          break;
+    
+      }
+      printf("\t");  /* put a separator */
+    }
+    printf("\n");  /* end the listing */
+}
+#endif
+
+int hm_transfer_iter_func(void *luaRef, const char *key, void *value) {
+    lua_State *L = (lua_State *)luaRef;
+    char *keyFirst, *keySecond, *dotLocation;
+    
+    /* expecting luaRef to be on top of stack */
+    
+    dotLocation = strchr(key, '.');
+    /* handle cases where we need a table */
+    if (dotLocation != NULL) {
+        keyFirst = strdup(key);
+        keySecond = keyFirst + (dotLocation-key);
+        
+        /* set the dot to null */
+        *(keySecond++) = '\0';
+        
+        /* get env table value */
+        lua_getfield(L, -1, keyFirst);
+
+        if (!lua_istable(L, -1)) {
+            /* need to create the table 
+            printf("creating table `%s` to insert key `%s`\n", keyFirst, key); */
+            lua_newtable(L);
+
+            /* insert the value 
+            printf("inserting into table `%s` key `%s` value `%.5s`\n", keyFirst, keySecond, (char *)value);*/
+            lua_pushstring(L, keySecond);
+            lua_pushstring(L, value);
+            
+            lua_settable(L, -3);
+
+            lua_setfield(L, -3, keyFirst);
+
+            lua_pop(L, 1);
+        } else {
+            /* insert the value 
+            printf("inserting into table %s key %s value %.5s\n", keyFirst, keySecond, (char *)value); */
+            lua_pushstring(L, keySecond);
+            lua_pushstring(L, value);
+
+            lua_settable(L, -3);
+            lua_pop(L, 1);
+        }
+        
+        free(keyFirst);
+    } else {
+        /* get env table value */
+        lua_getfield(L, -1, key);
+
+         if (!lua_istable(L, -1)) {
+            lua_pushstring(L, (char *)value);
+            /*printf("all ok here!");stackDump(L);fflush(stdout);*/
+            lua_setfield(L, -3, key);
+            
+            lua_pop(L, 1);
+         } else {
+             printf("tried to set %s but it is a table\n", key);
+
+             lua_pop(L, 1);
+         }
+    }
     return MAP_OK;
+}
+
+#if 0
+static void table_dump(lua_State *L) {
+    int t = 1;
+    /* table is in the stack at index 't' */
+    lua_pushnil(L);  /* first key */
+    while (lua_next(L, t) != 0) {
+        /* uses 'key' (at index -2) and 'value' (at index -1) */
+        if (lua_type(L, -2) == LUA_TSTRING) {
+            printf("%s: ", lua_tostring(L, -2));
+        }
+        if (lua_type(L, -1) == LUA_TSTRING) {
+            printf("%s", lua_tostring(L, -1));
+        } else if (lua_type(L, -1) == LUA_TTABLE) {
+            printf("table");
+        } else {
+            printf("%s", lua_typename(L, lua_type(L, -1)));
+        }
+        puts("");
+        
+        /* removes 'value'; keeps 'key' for next iteration */
+        lua_pop(L, 1);
+    }
+}
+#endif
+
+char *parse_template_withmap(const char *in, lua_State *L) {
+    /* expects that table env will be on top */
+    string out, outFinal, tmp;
+    
+    /* create logger */
+    gl = goatee_logger_new(GLL_WARN);
+    
+    /* convert to string */
+    tmp = string_mknew(in);
+    
+    /* generate lua code to run */
+    out = goatee_gen(tmp, myModifiers, gl);
+    if (!out) {
+        printf("%s", gl->messages);
+        return NULL;
+    }
+    string_free(tmp);
+    
+    /* run the lua code */
+    outFinal = goatee_run(L, out, gl);
+    if (!outFinal) {
+        printf("%s", gl->messages);
+        printf("output:\n%s", out);
+        return NULL;
+    }
+    
+    printf("%s", gl->messages);
+    
+    /* cleanup */
+    goatee_logger_destroy(gl);
+    string_free(out);
+    return outFinal;
 }
 
 /*
 Parse the template using the dictionary given
 */
-char *parse_template(const char *in, const map_t dictionary) {
-    const char *lastEnding = in;
-    char *output = NULL, *newOutput, *startToken, *endToken,
-         *tokenKey;
-    const char *tokenValue;
-    void *tmp;
+char *parse_template(const char *in, const map_t dictionary, lua_State *L) {
+    string out;
+    
+    goatee_setup_basic_table(L);
+    hashmap_iterate(dictionary, &hm_transfer_iter_func, L);
 
-    /* loop through until we hit the end */
-    while (1) {
-        /* find the next occurence of "{{" - aka the start of a variable */
-        startToken = strutil_next_token(lastEnding, "{{");
-        if (startToken == NULL) goto done; /* done parsing, no more variables */
-        
-        /* find the next occurence of "}}" - aka the end of the variable */
-        endToken = strutil_next_token(startToken, "}}");
-        if (endToken == NULL) { /* the endToken is null, should not happen! */
-            fprintf(stderr, "["KRED"ERR"RESET"] Template does not close variable! Check to make sure that all `{{` are terminated by `}}`.\n");
-            return NULL;
-        }
-        
-        /* append everything before the "{{"" into the result */
-        if (startToken == lastEnding) {
-            /* nothing to append, there is nothing in between */
-        } else if (output == NULL) {
-            /* first appending */
-            output = strndup(in, startToken - in);
-        } else {
-            newOutput = strutil_appendn_no_mutate(output, lastEnding,
-                            startToken - lastEnding); /* offset of the token */
-            free(output);
-            output = newOutput;
-        }
-        
-        /* extract what variable is getting spit out */
-        tokenKey = strndup(startToken+2, (endToken - startToken)-2);
-        /* 2 since "{{" is 2 long     1 since we need to go back 1 character */
-        if (*(startToken+2) == ' ' || *(endToken-1) == ' ') {
-            /* trim the spaces and put the trimmed result into the value */
-            /* need to free value since we just strdup'd it */
-            char *temp = strutil_trim_spaces(tokenKey);
-            free(tokenKey);
-            tokenKey = temp;
-        }
-        
-        /* get that value from the dictionary */
-        /* we do not ever mutate tokenValue, since it is a direct */
-        /* reference from the dictionary */
-        hashmap_get(dictionary, tokenKey, &tmp);
-        
-        if (tmp == NULL) {
-            tokenValue = "";
-        } else {
-            tokenValue = (char *)tmp;
-        }
-        
-        /* append that value in the result */
-        if (output == NULL) {
-            output = strdup(tokenValue);
-        } else {
-            newOutput = strutil_append_no_mutate(output, tokenValue);
-            free(output);
-            output = newOutput;
-        }
-        
-        /* skip to the end of the "}}" */
-        lastEnding = endToken+2;
-
-        /* free the malloc'd strings */
-        free(tokenKey);
-    }
-    done:
-    /* check if there are any more non-variable characters to copy over */
-    if (*(lastEnding+1) != '\0') {
-        if (output == NULL) {
-            /* aka no variables */
-            return strdup(lastEnding);
-        }
-        newOutput = strutil_append_no_mutate(output, lastEnding);
-        free(output);
-        output = newOutput;
-    }
-    return output;
+    out = parse_template_withmap(in, L);
+    
+    lua_pop(L, 1);
+    return out;
 }

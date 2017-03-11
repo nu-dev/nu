@@ -1,0 +1,11 @@
+<div class="post">
+<h1>{{ post.name }}</h1>
+
+{{ post.is_special }}
+
+{% if not (post.is_special == "true") then %}
+Created: {{ post.cdate }}
+Last modified: {{ post.mdate }} at {{ post.mtime }}
+{% end %}
+{{ post.contents }}
+</div>

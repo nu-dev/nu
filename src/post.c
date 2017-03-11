@@ -46,6 +46,9 @@ post *post_create(const char *in_fpath) {
         to->delta_time = difftime(inTime, outTime);
 	}
 	
+	/* TODO: Check if output file exists and the LM date of the output 
+	   if it's more recent compared to this, then don't rebuild it */
+	
 	parseFile(in_fpath, to);
 	
 	if (to->contents == NULL) {
@@ -64,7 +67,7 @@ post *post_create(const char *in_fpath) {
         time(&tmpTime);
         createTime = localtime(&tmpTime);
         if (strptime(timestamp, "%Y-%m-%d", createTime) != NULL) {
-            strftime(to->cdate, 50, "%b %d, %Y", createTime);
+            strftime(to->cdate, 50, "%B %d, %Y", createTime);
         } else {
             fprintf(stderr, "["KRED"ERR"RESET"] Error while parsing time. This should not happen!!\n");
             return NULL;
@@ -72,16 +75,18 @@ post *post_create(const char *in_fpath) {
         free(timestamp);
     }
     
-/*#ifdef __DEBUG
-printf("Made a new post!\nattr are:\n");
-printf("\tName: %s\n\tRaw link: %s\n\tis special:%d\n\tin fn:%s\n", to->name, to->raw_link, to->is_special, to->in_fn);
-.#endif*/
+#ifdef __DEBUG
+    printf("Made a new post!\nattr are:\n");
+    printf("\tName: %s\n\tRaw link: %s\n\tis special:%d\n\tin fn:%s\n", to->name, to->raw_link, to->is_special, to->in_fn);
+/*    printf("\tContents:\n%s", to->contents);*/
+#endif
     return to;
 }
 
 void post_free(post *in) {
     free(in->name);
-    free(in->contents);
+    free(in->raw_link);
+    string_free(in->contents);
     free(in->in_fn);
     free(in->out_loc);
     free(in);
@@ -91,9 +96,11 @@ void pl_clean(post_list *in) {
     /* get the first element */
     post_list_elem *curr = in->head;
     post_list_elem *next;
-    
-    printf("my size: %d", in->length);
-    
+
+#ifdef __DEBUG
+    printf("my size: %d\n", in->length);
+#endif
+
     /* loop through the entire list */
     while (curr != NULL) {
         next = curr->next;
@@ -127,7 +134,7 @@ int _pl_cmp(const void *one, const void *two) {
         } else if (*two_name > *one_name) {
             return 1;
         }
-        /* they are equal, so keep going */
+        /* they are equal so far, keep going */
         one_name++;
         two_name++;
     }
@@ -185,54 +192,18 @@ post_list *_pl_from_array(post_list_elem *in, unsigned int length) {
     free(in);
     return lst;
 }
-/*
-void _pl_dump(post_list *in) {
-    post_list_elem *curr;
-    
-    curr = in->head;
-    
-    while (curr != NULL) {
-        printf("postlist %s\n", (curr->me)->in_fn);
-        curr = curr->next;
-    }
-}
-
-void _pa_dump(post_list_elem *in, unsigned int length) {
-    unsigned int i;
-    
-    for (i = 0; i < length; i++) {
-        printf("%d postarr %s\n", __LINE__, (in[i].me)->in_fn);
-    }
-}*/
 
 void pl_sort(post_list **in) {
     post_list_elem *arr;
+    int length = (*in)->length;
     
     /* convert the post list to an array, then quicksort it, then convert it
      * back into a list
      */
     arr = _pl_make_array(*in);
 
-    qsort((void*)arr, (*in)->length, sizeof(post_list_elem), _pl_cmp);
+    qsort((void*)arr, length, sizeof(post_list_elem), _pl_cmp);
 
     free(*in);
-    *in = _pl_from_array(arr, (*in)->length);
+    *in = _pl_from_array(arr, length);
 }
-
-/*
-int main() {
-    post *test;
-    globNuDir = "/home/ubuntu/workspace/fs-layout/";
-    test = post_create("/home/ubuntu/workspace/fs-layout/raw/2015-11-17-Test post.md");
-    printf("post.name: `%s`\n", test->name);
-    printf("post.contents: `%s`\n", test->contents);
-    printf("post.cdate: `%s`\n", test->cdate);
-    printf("post.mdate: `%s`\n", test->mdate);
-    printf("post.mtime: `%s`\n", test->mtime);
-    printf("post.in_fn: `%s`\n", test->in_fn);
-    printf("post.out_loc: `%s`\n", test->out_loc);
-    printf("post.delta_time: `%f`\n", test->delta_time);
-    printf("post.is_special: `%d`\n", test->is_special);
-    post_free(test);
-    return 0;
-}*/

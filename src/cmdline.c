@@ -1,5 +1,7 @@
 #include "common.h"
 #include "cmds.h"
+#include "build.h"
+
 
 /*static char buf[BUF_SIZE];*/
 

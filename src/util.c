@@ -128,7 +128,7 @@ const char *fileExtension(const char *in) {
     char *dot;
     
     dot = strrchr(in, '.');
-    if(!dot || dot == in) return "";
+    if(!dot || dot == in) return NULL;
     return dot + 1;
 }
 
@@ -145,6 +145,8 @@ char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial) {
     /* make a copy of the input filename so we can mutate it */
     name = strdup(inFile);
     len = strlen(name);
+    
+    printf("length:%d\n", len);
     
     /* check if the filename matches the right format */
     if ((len > 15)
@@ -343,6 +345,8 @@ char *parseMD(const char *in, const char *filename) {
 	if (removeCount > 0) {
 	    printf("["KYEL"WARN"RESET"] Unicode characters were found in the file `%s`. Unfortunately, nu v"NU_VERSION" currently does NOT support unicode, so those characters were removed.\n", filename);
 	}
+	
+	hoedown_buffer_free(ob);
 	return ret;
 }
 
