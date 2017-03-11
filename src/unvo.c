@@ -41,7 +41,7 @@ static string unvo_handle_include(string all, string in) {
     ));
 }
 
-#if 0
+#if __DEBUG
 static void stackDump(lua_State *L) {
     int i;
     int top = lua_gettop(L);
@@ -135,7 +135,7 @@ int hm_transfer_iter_func(void *luaRef, const char *key, void *value) {
     return MAP_OK;
 }
 
-#if 0
+#if __DEBUG
 static void table_dump(lua_State *L) {
     int t = 1;
     /* table is in the stack at index 't' */
@@ -178,6 +178,10 @@ char *parse_template_withmap(const char *in, lua_State *L) {
     }
     string_free(tmp);
     
+#if __DEBUG
+    stackDump(L);
+    table_dump(L);
+#endif
     /* run the lua code */
     outFinal = goatee_run(L, out, gl);
     if (!outFinal) {

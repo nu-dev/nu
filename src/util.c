@@ -146,8 +146,6 @@ char *getOutputFileName(const char *inFile, const char *nuDir, int *isSpecial) {
     name = strdup(inFile);
     len = strlen(name);
     
-    printf("length:%d\n", len);
-    
     /* check if the filename matches the right format */
     if ((len > 15)
         && (isDigit(name[0]) && isDigit(name[1]) && isDigit(name[2]) && isDigit(name[3]) && name[4] == '-') /* year */
