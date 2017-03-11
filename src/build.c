@@ -14,14 +14,17 @@ static int dLoop(const char *inFile) {
 
     me = post_create(inFile);
     if (!me->is_special) pl_add_post(gl_pl, me); /* only add to post list if special */
-    
+
+    /* add the elements to map */
+    hashmap_put(gl_map, "post.raw_link", me->raw_link);
+
     if ((tmp = parse_template(me->contents, gl_map, Lpass)) == NULL) {
         return -1;
     }
-    
+
     free(me->contents);
     me->contents = tmp;
-    
+
     /* add the elements to map */
     hashmap_put(gl_map, "post.name", me->name);
     hashmap_put(gl_map, "post.contents", tmp);
@@ -31,7 +34,6 @@ static int dLoop(const char *inFile) {
     hashmap_put(gl_map, "post.mtime", me->mtime);
     hashmap_put(gl_map, "post.in_fn", me->in_fn);
     hashmap_put(gl_map, "post.out_loc", me->out_loc);
-    hashmap_put(gl_map, "post.raw_link", me->raw_link);
     if (me->is_special)
         hashmap_put(gl_map, "post.is_special", "true");
     
