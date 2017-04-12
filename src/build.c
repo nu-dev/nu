@@ -12,6 +12,12 @@ static int dLoop(const char *inFile) {
     post *me;
     string t_out, tmp;
 
+    if (strcmp(fileExtension(inFile), "md") && strcmp(fileExtension(inFile), "markdown")) {
+        /* Not a markdown file */
+        printf("["KYEL"WARN"RESET"] File `%s` does not end in `md` or `markdown` (extension `%s`); skipped.\n", inFile, fileExtension(inFile));
+        return 0;
+    }
+
     me = post_create(inFile);
     if (!me->is_special) pl_add_post(gl_pl, me); /* only add to post list if special */
 
@@ -320,7 +326,6 @@ static char *getThemeFile(char *fName, int isRequired) {
 }
 
 void free_wrapper(void *in) {
-    printf("freed %p\n", in);
     free(in);
 }
 
