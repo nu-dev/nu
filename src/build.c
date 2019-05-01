@@ -349,8 +349,8 @@ int buildNuDir(const char *nuDir) {
     free(tmp2);
     
     /* get theme */
-    if (hashmap_get(gl_map, "theme", (void *)(&theme)) == MAP_MISSING) {
-        fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `theme` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
+    if (hashmap_get(gl_map, "themename", (void *)(&theme)) == MAP_MISSING) {
+        fprintf(stderr, "["KRED"ERR"RESET"] Could not find a key of name `themename` to determine what theme nu is going to use. Please see https://github.com/nu-dev/nu/wiki/Getting-Started for help.\n");
         return -1;
     }
     
@@ -394,7 +394,7 @@ int buildNuDir(const char *nuDir) {
     
     /* get # of posts per page */
     if (hashmap_get(gl_map, "theme.postsperpage", (void *)(&ppp)) == MAP_MISSING) {
-        fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a key of name `postperpage` to determine how many posts per page. Using default.\n");
+        fprintf(stderr, "["KYEL"WARN"RESET"] Theme %s did not specify a `postsperpage` to determine how many posts belong on a page. Using default.\n", theme);
         ppp = "3";
     }
     
