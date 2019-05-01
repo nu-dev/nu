@@ -355,7 +355,9 @@ int buildNuDir(const char *nuDir) {
     }
     
     /* parse the theme file */
-    tmp1 = getThemeFile("config.kg", 0);
+    tmp2 = string_appendv(2, string_temporary(string_mknew(theme)), string_temporary(string_mknew("/config.kg")));
+    tmp1 = getThemeFile(tmp2, 0);
+    string_free(tmp2);
     if (!tmp1) {
         fprintf(stderr, "["KYEL"WARN"RESET"] Could not find a theme config file.\n");
     } else {

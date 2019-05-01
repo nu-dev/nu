@@ -187,7 +187,7 @@ post_list *_pl_from_array(post_list_elem *in, unsigned int length) {
     
     lst->tail = created;
     lst->length = length;
-    created->next = NULL;
+    if (created) created->next = NULL;
     
     free(in);
     return lst;
