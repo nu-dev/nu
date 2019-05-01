@@ -358,7 +358,7 @@ int createDirs(const char *filename) {
     
     if (stat(temp, &st) == -1) {
         createDirs(temp);
-        mkdir(temp, 0700);
+        mkdir(temp, 0755);
     }
     
     free(temp);
