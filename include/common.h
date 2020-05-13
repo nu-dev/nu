@@ -48,7 +48,7 @@
 #endif
 
 #define NU_CONFIG_NAME "config.kg"
-#define NU_CONFIG_NAME_LENGTH 9
+#define NU_CONFIG_NAME_LENGTH 10
 
 /* nu version */
 #define NU_VERSION      "0.2.0b"
@@ -68,4 +68,6 @@ typedef struct _post {
     double delta_time; /* delta time between input and output */
     int is_special; /* is this a special post */
 } post;
+
+
 #endif

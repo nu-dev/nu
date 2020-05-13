@@ -1,5 +1,7 @@
 #ifndef _KG_INC
 #define _KG_INC
+
+#include "util.h"
 #include "common.h"
 #include "hashmap.h"
 

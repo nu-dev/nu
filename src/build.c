@@ -142,18 +142,30 @@ static void pushPost(lua_State *L, post *in, int n) {
     struct {
         char *key;
         char *value;
-    } spt[] = {{"name", in->name},
-            {"contents", in->contents},
-            {"cdate", in->cdate},
-            {"mdate", in->mdate},
-            {"mtime", in->mtime},
-            {"in_fn", in->in_fn},
-            {"out_loc", in->out_loc},
-            {"raw_link", in->raw_link},
-            {"link", calcPermalink(in->out_loc)},
-            {NULL, NULL}};
+    } spt[10];
     int i;
-    
+
+    spt[0].key = "name";
+    spt[0].value = in->name;
+    spt[1].key = "contents";
+    spt[1].value = in->contents;
+    spt[2].key = "cdate";
+    spt[2].value = in->cdate;
+    spt[3].key = "mdate";
+    spt[3].value = in->mdate;
+    spt[4].key = "mtime";
+    spt[4].value = in->mtime;
+    spt[5].key = "in_fn";
+    spt[5].value = in->in_fn;
+    spt[6].key = "out_loc";
+    spt[6].value = in->out_loc;
+    spt[7].key = "raw_link";
+    spt[7].value = in->raw_link;
+    spt[8].key = "link";
+    spt[8].value = calcPermalink(in->out_loc);
+    spt[9].key = NULL;
+    spt[9].value = NULL;
+
     /* get env table value */
     lua_getfield(L, -1, "posts");
 

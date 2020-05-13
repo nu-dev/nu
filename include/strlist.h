@@ -3,6 +3,7 @@
 
 /* custom headers */
 #include "common.h"
+#include "util.h"
 
 typedef struct _str_list_elem {
     char *val;

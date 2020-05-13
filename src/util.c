@@ -1,5 +1,29 @@
 #include "util.h"
 
+/* make new string */
+char *strdup(const char *s) {
+    size_t z;
+    char *r;
+
+    z = strlen(s) + 1;
+    r = malloc(z);
+    if (r) memcpy(r, s, z);
+    return r;
+}
+
+/* make new string (numbered) */
+char *strndup(const char *s, size_t n) {
+    size_t z;
+    char *r;
+
+    z = strlen(s);
+    z = (z > n ? n : z) + 1;
+    r = malloc(z);
+    if (r) memcpy(r, s, z);
+    if (r) r[z-1] = '\0';
+    return r;
+}
+
 /* utility to check if directory exists or not */
 int dirExists(const char *name) {
     DIR* dir;

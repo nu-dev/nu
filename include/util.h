@@ -8,6 +8,9 @@
 #include <string.h>
 #include <errno.h>
 
+char *strdup(const char *s);
+char *strndup(const char *s, size_t n);
+
 int dirExists(const char *name);
 int makeNewDir(const char *dir);
 char *dirJoin(const char *a, const char *b);

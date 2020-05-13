@@ -1,5 +1,5 @@
 INCLUDES=-I include/ -I libs/include
-CFLAGS=$(INCLUDES) -Wall -Werror
+CFLAGS=$(INCLUDES) -Wall -Werror -ansi -pedantic -Wextra
 LIBFLAGS=-Llibs/ -lhoedown -lnucommon -lgoatee -llua -lstring -lm
 
 OBJ=objs/build.o objs/cmdline.o objs/cmds.o objs/kg.o objs/pageList.o objs/post.o objs/strlist.o objs/unvo.o objs/util.o
