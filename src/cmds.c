@@ -5,7 +5,7 @@ static char newsrv_buf[BUF_SIZE];
 static const char *defaultConfig_contents =
 "# nu default config\n"
 "# for help, please visit https://github.com/nu-dev/nu/wiki/Getting-Started\n"
-"theme = \"basic\"\n"
+"themename = \"basic\"\n"
 "sitename = \"My new blog\"\n"
 "sitedesc = \"My new blog!\"\n";
 
@@ -14,7 +14,7 @@ int newSrv(char *name) {
     int nameLen;
     int cwdLen;
     int i;
-    char *dirsToMake[DIRSTOMAKECOUNT] = {"", "posts", "raw", "resources", "special", "theme"};
+    char *dirsToMake[DIRSTOMAKECOUNT] = {"", "posts", "raw", "resources", "special", "themes"};
     char *newDirName;
     FILE *fp;
     
